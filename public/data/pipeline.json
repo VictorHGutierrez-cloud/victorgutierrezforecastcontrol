@@ -1,0 +1,373 @@
+{
+  "meta": {
+    "owner": "Victor Gutierrez",
+    "role": "Partner Account Executive",
+    "team": "ROW",
+    "exportedAt": "2026-05-19",
+    "source": "HubSpot CRM \u2014 Forecast Control"
+  },
+  "summary": {
+    "totalDeals": 20,
+    "totalPipeline": 28667.44,
+    "upsideValue": 17268.7,
+    "upsideCount": 8,
+    "pipelineValue": 7108.4,
+    "pipelineCount": 4,
+    "closedWonValue": 590.34,
+    "closedWonCount": 2,
+    "notForecastedValue": 3700.0,
+    "notForecastedCount": 6,
+    "avgDealSize": 1433.37,
+    "totalActivities": 197,
+    "countries": [
+      "Angola",
+      "Georgia",
+      "North Africa",
+      "Pakistan",
+      "Trinidad and Tobago",
+      "UAE",
+      "United Kingdom",
+      "United States"
+    ]
+  },
+  "chartSeries": [
+    {
+      "key": "Upside",
+      "data": [
+        {
+          "key": "2026-05-01T00:00:00",
+          "data": 1518.7
+        },
+        {
+          "key": "2026-06-01T00:00:00",
+          "data": 15750.0
+        }
+      ]
+    },
+    {
+      "key": "Pipeline",
+      "data": [
+        {
+          "key": "2026-05-01T00:00:00",
+          "data": 0.0
+        },
+        {
+          "key": "2026-06-01T00:00:00",
+          "data": 7108.4
+        }
+      ]
+    },
+    {
+      "key": "Closed Won",
+      "data": [
+        {
+          "key": "2026-05-01T00:00:00",
+          "data": 590.3399999999999
+        },
+        {
+          "key": "2026-06-01T00:00:00",
+          "data": 0.0
+        }
+      ]
+    },
+    {
+      "key": "Not Forecasted",
+      "data": [
+        {
+          "key": "2026-05-01T00:00:00",
+          "data": 0.0
+        },
+        {
+          "key": "2026-06-01T00:00:00",
+          "data": 3700.0
+        }
+      ]
+    }
+  ],
+  "chartMonths": [
+    "2026-05",
+    "2026-06"
+  ],
+  "deals": [
+    {
+      "id": "466064276668",
+      "name": "Dulceria Nacional  - No Partner",
+      "amount": 10000.0,
+      "closeDate": "2026-06-15T15:21:00",
+      "country": "Angola",
+      "category": "Upside",
+      "stage": "Factorial Project Alignment started",
+      "partner": "",
+      "employees": 462,
+      "activities": 20,
+      "lastActivity": "2026-04-30T10:47:00",
+      "nextStep": "Call with HRBPs scheduled for Monday. IT has already validated us and we are the preferred vendor due to strong alignment with the Microsoft ecosystem and CIO buy-in. Final decision on IT expected post-HRBP validation."
+    },
+    {
+      "id": "500676663510",
+      "name": "CSCAngola - Fulton ",
+      "amount": 3990.0,
+      "closeDate": "2026-06-30T17:40:00",
+      "country": "Angola",
+      "category": "Pipeline",
+      "stage": "Factorial Project Alignment started",
+      "partner": "FULTON GONGA - PRESTA\u00c7\u00c3O DE SERVI\u00c7OS (SU), LDA",
+      "employees": 1000,
+      "activities": 2,
+      "lastActivity": "2026-05-02T11:01:00",
+      "nextStep": "Long tail deal. Working with Partner to create the urgency. Blue collar company with low tech expertise.\n"
+    },
+    {
+      "id": "496773721286",
+      "name": "ANSA McAL Limited - from Davyn Limited (Factorial IT)",
+      "amount": 2500.0,
+      "closeDate": "2026-06-30T17:39:00",
+      "country": "United Kingdom",
+      "category": "Upside",
+      "stage": "On Hold",
+      "partner": "Davyn",
+      "employees": 500,
+      "activities": 11,
+      "lastActivity": "2026-05-07T10:25:00",
+      "nextStep": "We are waiting for the NDA, Davyn it's handling the next steps with our champion. Clear pain points, urgency for a solution. Pretty good opportunity. \n"
+    },
+    {
+      "id": "469061228745",
+      "name": "Lasco Distributors (IT) - from Davyn",
+      "amount": 2315.0,
+      "closeDate": "2026-06-30T17:39:00",
+      "country": "Trinidad and Tobago",
+      "category": "Pipeline",
+      "stage": "Factorial Project Alignment started",
+      "partner": "Davyn",
+      "employees": 500,
+      "activities": 11,
+      "lastActivity": "2026-05-18T03:54:00",
+      "nextStep": "We are in touch with their CIO at, but he mentioned that he will be \"inundated with meetings\" for the next two weeks due to budget reviews and meetings with the execs. We scheduled a placeholder for a follow-up technical meeting on the 16th."
+    },
+    {
+      "id": "497781130489",
+      "name": "Marcura - Baker Tilly (IT)",
+      "amount": 1770.0,
+      "closeDate": "2026-06-30T14:47:00",
+      "country": "UAE",
+      "category": "Upside",
+      "stage": "Factorial Project Alignment started",
+      "partner": "Baker Tilly ",
+      "employees": 300,
+      "activities": 26,
+      "lastActivity": "2026-05-19T10:46:00",
+      "nextStep": "Set the Pen test and solve the reamaining scripts questions"
+    },
+    {
+      "id": "501666024647",
+      "name": "Atraeza - Fulton",
+      "amount": 1000.0,
+      "closeDate": "2026-06-30T10:58:00",
+      "country": "Angola",
+      "category": "Upside",
+      "stage": "New Deals",
+      "partner": "FULTON GONGA - PRESTA\u00c7\u00c3O DE SERVI\u00c7OS (SU), LDA",
+      "employees": 100,
+      "activities": 1,
+      "lastActivity": "2026-05-02T10:59:00",
+      "nextStep": "First Demo"
+    },
+    {
+      "id": "500671261912",
+      "name": "Cartaplast from Introw",
+      "amount": 1000.0,
+      "closeDate": "2026-06-30T17:40:00",
+      "country": "Angola",
+      "category": "Not Forecasted",
+      "stage": "New Deals",
+      "partner": "FULTON GONGA - PRESTA\u00c7\u00c3O DE SERVI\u00c7OS (SU), LDA",
+      "employees": 50,
+      "activities": 1,
+      "lastActivity": "2026-04-27T11:52:00",
+      "nextStep": "First Demo\n"
+    },
+    {
+      "id": "502668887280",
+      "name": "Group of Companies, SA - Fulton",
+      "amount": 700.0,
+      "closeDate": "2026-06-30T21:34:00",
+      "country": "Angola",
+      "category": "Not Forecasted",
+      "stage": "New Deals",
+      "partner": "FULTON GONGA - PRESTA\u00c7\u00c3O DE SERVI\u00c7OS (SU), LDA",
+      "employees": 70,
+      "activities": 1,
+      "lastActivity": "2026-05-14T16:12:00",
+      "nextStep": "First Demo"
+    },
+    {
+      "id": "502217015491",
+      "name": "Glam AI - Factorial IT",
+      "amount": 650.0,
+      "closeDate": "2026-05-31T17:40:00",
+      "country": "Georgia",
+      "category": "Upside",
+      "stage": "Factorial Project Alignment started",
+      "partner": "",
+      "employees": 85,
+      "activities": 13,
+      "lastActivity": "2026-05-13T15:26:00",
+      "nextStep": "Follow up next week to discuss remaining questions. Time tbd. \n"
+    },
+    {
+      "id": "498315753702",
+      "name": "AZTECH - No Partner",
+      "amount": 638.0,
+      "closeDate": "2026-05-31T18:17:00",
+      "country": "Angola",
+      "category": "Upside",
+      "stage": "Economical Allignment Started",
+      "partner": "FULTON GONGA - PRESTA\u00c7\u00c3O DE SERVI\u00c7OS (SU), LDA",
+      "employees": 100,
+      "activities": 11,
+      "lastActivity": "2026-05-18T16:22:00",
+      "nextStep": "Had the 2nd call, we are the preferred vendors and we are 80% cheaper than SAP. We have another competitor (Odoo) but it's not good and she knows that. She said that she can make the decision and we have locked the discount to May.\n"
+    },
+    {
+      "id": "499794274531",
+      "name": "Superior Homes - from Talent Grid Africa",
+      "amount": 576.0,
+      "closeDate": "2026-06-30T11:30:00",
+      "country": "United Kingdom",
+      "category": "Pipeline",
+      "stage": "Factorial Project Alignment started",
+      "partner": "Talent Grid Africa",
+      "employees": 85,
+      "activities": 5,
+      "lastActivity": "2026-05-15T08:00:00",
+      "nextStep": "Proposal sent. FUP scheduled for 22 may"
+    },
+    {
+      "id": "500786595029",
+      "name": "MCA Group - Fulton",
+      "amount": 500.0,
+      "closeDate": "2026-06-30T17:40:00",
+      "country": "Angola",
+      "category": "Not Forecasted",
+      "stage": "New Deals",
+      "partner": "FULTON GONGA - PRESTA\u00c7\u00c3O DE SERVI\u00c7OS (SU), LDA",
+      "employees": 50,
+      "activities": 1,
+      "lastActivity": "2026-04-27T12:01:00",
+      "nextStep": "First Demo\n"
+    },
+    {
+      "id": "500627016909",
+      "name": "Tecsteel - Fulton",
+      "amount": 500.0,
+      "closeDate": "2026-06-30T17:40:00",
+      "country": "Angola",
+      "category": "Not Forecasted",
+      "stage": "New Deals",
+      "partner": "FULTON GONGA - PRESTA\u00c7\u00c3O DE SERVI\u00c7OS (SU), LDA",
+      "employees": 50,
+      "activities": 1,
+      "lastActivity": "2026-04-27T11:52:00",
+      "nextStep": "First Demo"
+    },
+    {
+      "id": "500786292927",
+      "name": "Octomar - Fulton",
+      "amount": 500.0,
+      "closeDate": "2026-06-30T17:40:00",
+      "country": "Angola",
+      "category": "Not Forecasted",
+      "stage": "New Deals",
+      "partner": "FULTON GONGA - PRESTA\u00c7\u00c3O DE SERVI\u00c7OS (SU), LDA",
+      "employees": 50,
+      "activities": 1,
+      "lastActivity": "2026-04-27T11:52:00",
+      "nextStep": "First Demo"
+    },
+    {
+      "id": "500778796235",
+      "name": "Fozkudia - Fulton",
+      "amount": 500.0,
+      "closeDate": "2026-06-23T17:40:00",
+      "country": "Angola",
+      "category": "Not Forecasted",
+      "stage": "New Deals",
+      "partner": "FULTON GONGA - PRESTA\u00c7\u00c3O DE SERVI\u00c7OS (SU), LDA",
+      "employees": 50,
+      "activities": 1,
+      "lastActivity": "2026-04-27T11:51:00",
+      "nextStep": "First Demo"
+    },
+    {
+      "id": "498558565577",
+      "name": "Instant Funding - IT - from Faqtic",
+      "amount": 480.0,
+      "closeDate": "2026-06-30T11:26:00",
+      "country": "United Kingdom",
+      "category": "Upside",
+      "stage": "Economical Allignment Started",
+      "partner": "Faqtic",
+      "employees": 60,
+      "activities": 7,
+      "lastActivity": "2026-05-07T10:24:00",
+      "nextStep": "We have the call with the decision makers on 12 may. We are in a good spot, as they are evaluating changing their MSP provider to Factorial IT. It's the 4th call with them, we showed the prices and we can expect the final decision next week.\n\nThey postponed the meeting to 1st Jun"
+    },
+    {
+      "id": "498509490375",
+      "name": "Turn Technologies",
+      "amount": 432.65,
+      "closeDate": "2026-05-20T11:39:00",
+      "country": "United States",
+      "category": "Closed Won",
+      "stage": "Closed - pending finance validation",
+      "partner": "Primordial",
+      "employees": 35,
+      "activities": 20,
+      "lastActivity": "2026-05-06T00:56:00",
+      "nextStep": "Being hardly ghosted. Ominchanneling her!\n\nFUP call later today (they are based in Mexico).\n\nWhy this will close:\n\n1) Client urgently needs a new HR solution before May 11 due to contract termination.\n\n2) They found the proposal fair and we are the preferred vendor, but are still"
+    },
+    {
+      "id": "502644274396",
+      "name": "The Righteous Foundation | Organic ",
+      "amount": 230.70000000000002,
+      "closeDate": "2026-05-31T18:17:00",
+      "country": "Pakistan",
+      "category": "Upside",
+      "stage": "Factorial Project Alignment started",
+      "partner": "",
+      "employees": 35,
+      "activities": 19,
+      "lastActivity": "2026-05-18T13:13:00",
+      "nextStep": "We made the second call! everything went great. They are not in a hurry to close, but they need it. And because we have a better price for non profit, this is a huge win for us. We still could bring it \nthis month.\n"
+    },
+    {
+      "id": "494600376531",
+      "name": "Vaultn BV - IT - from Faqtic",
+      "amount": 227.4,
+      "closeDate": "2026-06-30T15:21:00",
+      "country": "United Kingdom",
+      "category": "Pipeline",
+      "stage": "Demo Booked",
+      "partner": "Faqtic",
+      "employees": 30,
+      "activities": 20,
+      "lastActivity": "2026-05-14T12:04:00",
+      "nextStep": "this deal has been put on the back burner until onboarding on the HR side has been completed. Will reengage at the end of April"
+    },
+    {
+      "id": "493052104893",
+      "name": "SIGA CV",
+      "amount": 157.69,
+      "closeDate": "2026-05-11T10:53:00",
+      "country": "North Africa",
+      "category": "Closed Won",
+      "stage": "Closed - pending finance validation",
+      "partner": "Antal International (Africa Segment",
+      "employees": 15,
+      "activities": 25,
+      "lastActivity": "2026-05-18T15:08:00",
+      "nextStep": "The client must sign the contract next Monday and become a new partner!"
+    }
+  ]
+}

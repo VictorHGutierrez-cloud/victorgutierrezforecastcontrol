@@ -1,0 +1,20 @@
+---
+description: Always commit and push to origin when finishing work in this repo
+alwaysApply: true
+---
+
+# Git push at end of work
+
+When you finish a task that changed files in this repository:
+
+1. Run `git status` — if there are no changes, skip commit/push.
+2. Stage only relevant files (never `.env`, credentials, or secrets).
+3. Commit with a clear message (use HEREDOC for the message body).
+4. Push to `origin` on the current branch (`git push origin HEAD`).
+5. Tell the user the commit hash and that GitHub Pages redeploys in ~3–5 minutes.
+
+Use commit author from the latest commit if git user identity is not configured:
+
+`GIT_AUTHOR_NAME="Victor Gutierrez" GIT_AUTHOR_EMAIL="VictorHGutierrez-cloud@users.noreply.github.com"` (and same for `GIT_COMMITTER_*`).
+
+Do not skip push unless the user explicitly says not to push, or push would fail without credentials (then explain what they need to run).

@@ -25,6 +25,12 @@ Edite **[`public/data/dashboard-config.json`](public/data/dashboard-config.json)
 
 Depois de alterar este ficheiro, volte a correr **`npm run generate-data`** para fundir valores em `pipeline.json`.
 
+## Gráficos (Subframe)
+
+- Componente base: [`src/components/ui/area-chart.tsx`](src/components/ui/area-chart.tsx) (wrapper sobre `@subframe/core`).
+- Secção **Pipeline reports** no dashboard: momentum, pipeline por mês de fecho, mix por categoria, países.
+- Dependência: `@subframe/core` (já no `package.json`).
+
 ## Métricas (resumo)
 
 - **Secured**: valor a 100 % dos Closed Won no mês (data de fecho).

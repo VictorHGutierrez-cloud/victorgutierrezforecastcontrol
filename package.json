@@ -10,6 +10,7 @@
     "generate-data": "python3 scripts/generate-pipeline-data.py"
   },
   "dependencies": {
+    "@subframe/core": "^1.154.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.12.1",

@@ -7,6 +7,7 @@ import LandingHero from "@/components/landing-hero";
 import MonthlyQuotaControl from "@/components/monthly-quota-control";
 import { MonthlyQuotaProvider, useMonthlyQuota } from "@/components/monthly-quota-context";
 import PipelineHealthPanel from "@/components/pipeline-health";
+import PipelineReportsSection from "@/components/pipeline-reports-section";
 import PriorityDeals from "@/components/priority-deals";
 import type { PipelineData } from "@/lib/pipeline-types";
 
@@ -32,6 +33,10 @@ function DashboardBody({ pipelineData }: { pipelineData: PipelineData }) {
           <div className="mt-6">
             <GoalTracker goal={effectiveGoal} />
           </div>
+        </section>
+
+        <section className="space-y-3">
+          <PipelineReportsSection pipelineData={pipelineData} goal={effectiveGoal} />
         </section>
 
         <section className="space-y-3">

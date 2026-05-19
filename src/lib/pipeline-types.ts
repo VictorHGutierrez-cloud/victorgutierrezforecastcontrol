@@ -126,7 +126,10 @@ export interface MonthlyGoal {
   monthLabel: string;
   securedEur: number;
   weightedEur: number;
+  /** Target minus secured (Closed Won this month) — primary 1:1 gap. */
   gapEur: number;
+  /** Target minus weighted forecast (open + closed with category weights). */
+  gapWeightedEur: number;
   progressPct: number;
   securedPct: number;
   winChancePct: number;

@@ -40,9 +40,15 @@ export default function BriefBentoSection({
       valueClass: chanceTone,
     },
     {
-      title: "Gap to goal",
+      title: "Gap to close",
       value: formatEur(goal.gapEur),
-      subtitle: `Target ${formatEur(goal.targetEur)}`,
+      subtitle: `Still needed vs ${formatEur(goal.targetEur)} (secured)`,
+    },
+    {
+      title: "Gap (forecast)",
+      value: formatEur(goal.gapWeightedEur),
+      subtitle: "After weighted pipeline",
+      valueClass: goal.gapWeightedEur <= 0 ? "text-emerald-700" : "text-slate-900",
     },
     {
       title: "Days left",

@@ -421,7 +421,8 @@ def main() -> None:
             for _, row in month_deals.iterrows()
         )
     )
-    gap = max(0.0, monthly_goal_eur - weighted_month)
+    gap_secured = max(0.0, monthly_goal_eur - secured)
+    gap_weighted = max(0.0, monthly_goal_eur - weighted_month)
     progress_pct = min(100.0, round((weighted_month / monthly_goal_eur) * 100, 1))
     secured_pct = min(100.0, round((secured / monthly_goal_eur) * 100, 1))
 
@@ -614,7 +615,8 @@ def main() -> None:
     bullets = [
         f"Monthly goal €{monthly_goal_eur:,.0f}: {progress_pct:.0f}% by weighted forecast — "
         f"€{secured:,.0f} secured, €{weighted_month:,.0f} weighted ({month_key}).",
-        f"Estimated chance to reach goal this month: ~{win_chance}%. Gap to target: €{gap:,.0f}.",
+        f"Estimated chance to reach goal this month: ~{win_chance}%. "
+        f"Gap to close (secured): €{gap_secured:,.0f} · Gap with forecast: €{gap_weighted:,.0f}.",
     ]
     if top_priority:
         score_bit = ""
@@ -697,7 +699,8 @@ def main() -> None:
             "monthLabel": today.strftime("%B %Y"),
             "securedEur": round(secured, 2),
             "weightedEur": round(weighted_month, 2),
-            "gapEur": round(gap, 2),
+            "gapEur": round(gap_secured, 2),
+            "gapWeightedEur": round(gap_weighted, 2),
             "progressPct": progress_pct,
             "securedPct": secured_pct,
             "winChancePct": win_chance,

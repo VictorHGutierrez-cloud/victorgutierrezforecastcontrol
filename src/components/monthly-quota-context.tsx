@@ -18,7 +18,7 @@ import {
 export const MONTHLY_QUOTA_STORAGE_KEY = "forecast-row-monthly-quota";
 
 /** Default thumbs range; bounds widen to always include spreadsheet export quota. */
-export const QUOTA_UI_DEFAULT_MIN_EUR = 250;
+export const QUOTA_UI_DEFAULT_MIN_EUR = 1;
 export const QUOTA_UI_DEFAULT_MAX_EUR = 50_000;
 export const QUOTA_SLIDER_STEP_EUR = 1;
 
@@ -170,6 +170,7 @@ export function MonthlyQuotaProvider({ children, pipelineData }: ProviderProps) 
       weightedMonthEur: effectiveGoal.weightedEur,
       monthKey: effectiveGoal.month,
       gapEur: effectiveGoal.gapEur,
+      gapWeightedEur: effectiveGoal.gapWeightedEur,
       winChancePct: effectiveGoal.winChancePct,
     });
 

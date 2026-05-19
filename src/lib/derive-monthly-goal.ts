@@ -26,7 +26,8 @@ export function deriveMonthlyGoalFromTarget(baseGoal: MonthlyGoal, targetEur: nu
   const weightedMonth = baseGoal.weightedEur;
   const secured = baseGoal.securedEur;
 
-  const gap = Math.max(0, tgt - weightedMonth);
+  const gapEur = Math.max(0, tgt - secured);
+  const gapWeightedEur = Math.max(0, tgt - weightedMonth);
   const progressPct = Math.min(100, Math.round((weightedMonth / tgt) * 1000) / 10);
   const securedPct = Math.min(100, Math.round((secured / tgt) * 1000) / 10);
   const rawChance = (weightedMonth / tgt) * 72 + (secured / tgt) * 28;
@@ -42,7 +43,8 @@ export function deriveMonthlyGoalFromTarget(baseGoal: MonthlyGoal, targetEur: nu
   return {
     ...baseGoal,
     targetEur: tgt,
-    gapEur: gap,
+    gapEur,
+    gapWeightedEur: gapWeightedEur,
     progressPct,
     securedPct,
     winChancePct,
@@ -64,18 +66,20 @@ export function buildExecutiveBulletsOpeningTwoLines(args: {
   weightedMonthEur: number;
   monthKey: string;
   gapEur: number;
+  gapWeightedEur: number;
   winChancePct: number;
 }): [string, string] {
   const quota = fmtIntEUR(args.monthlyGoalEur);
   const pct = Math.round(args.progressPct);
   const secured = fmtIntEUR(args.securedEur);
   const weighted = fmtIntEUR(args.weightedMonthEur);
-  const gap = fmtIntEUR(args.gapEur);
+  const gapSecured = fmtIntEUR(args.gapEur);
+  const gapWeighted = fmtIntEUR(args.gapWeightedEur);
   const wc = Math.round(args.winChancePct);
 
   return [
     `Monthly goal €${quota}: ${pct}% by weighted forecast — €${secured} secured, €${weighted} weighted (${args.monthKey}).`,
-    `Estimated chance to reach goal this month: ~${wc}%. Gap to target: €${gap}.`,
+    `Estimated chance to reach goal this month: ~${wc}%. Gap to close (secured): €${gapSecured} · Gap with forecast: €${gapWeighted}.`,
   ];
 }
 

@@ -68,7 +68,7 @@ export default function GoalTracker({ goal }: GoalTrackerProps) {
             </h2>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
             {(
               [
                 {
@@ -87,10 +87,17 @@ export default function GoalTracker({ goal }: GoalTrackerProps) {
                 },
                 {
                   icon: Target,
-                  label: "Gap",
+                  label: "Gap to close",
                   value: formatEur(goal.gapEur),
-                  sub: "To target",
-                  tip: "Remaining weighted € to reach the monthly goal.",
+                  sub: "Still to win",
+                  tip: "Monthly target minus secured (Closed Won) this month — best for 1:1 cash view.",
+                },
+                {
+                  icon: Target,
+                  label: "Gap (forecast)",
+                  value: formatEur(goal.gapWeightedEur),
+                  sub: "Weighted",
+                  tip: "Monthly target minus weighted forecast (includes open deals by HubSpot category weights).",
                 },
                 {
                   icon: Calendar,

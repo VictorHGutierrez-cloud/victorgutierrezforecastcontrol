@@ -29,6 +29,8 @@ Depois de alterar este ficheiro, volte a correr **`npm run generate-data`** para
 
 - **Secured**: valor a 100 % dos Closed Won no mês (data de fecho).
 - **Weighted**: cada deal × peso por categoria (Upside ~55 %, Pipeline ~25 %, Not forecasted ~8 % — ver `scripts/generate-pipeline-data.py`).
+- **Gap to close**: meta − secured (o que ainda falta fechar em € reais — melhor para 1:1).
+- **Gap (forecast)**: meta − weighted (inclui previsão dos deals abertos com pesos HubSpot).
 - **Pipeline health**: pipe criado no mês, idade média, **deal score** e **valid touchpoints** (export HubSpot), lista “attention” com motivo em linguagem clara. Deals com **próxima actividade agendada** no futuro não entram como stale.
 - Campos extra no export (quando existirem): Last Contacted, Next activity date, Demo Status, Outbound Category, etc. — o script mapeia automaticamente.
 - Bullets da secção **Executive summary** são gerados em Python a partir do export (sem IA).

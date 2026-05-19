@@ -85,7 +85,7 @@
   },
   "executiveBullets": [
     "Monthly goal \u20ac2,000: 71% by weighted forecast \u2014 \u20ac590 secured, \u20ac1,426 weighted (2026-05).",
-    "Estimated chance to reach goal this month: ~60%. Gap to target: \u20ac574.",
+    "Estimated chance to reach goal this month: ~60%. Gap to close (secured): \u20ac1,410 \u00b7 Gap with forecast: \u20ac574.",
     "Largest upside this month: \u00abGlam AI - Factorial IT\u00bb (650 \u20ac nominal, \u20ac358 weighted, score 11, 3 valid touchpoint(s)).",
     "Pipe created (by create date) in May: \u20ac2,581 (4 deals).",
     "Open pipeline average deal score: 21.6 (HubSpot 0\u2013100; higher = healthier engagement signals).",
@@ -158,7 +158,8 @@
     "monthLabel": "May 2026",
     "securedEur": 590.34,
     "weightedEur": 1425.62,
-    "gapEur": 574.38,
+    "gapEur": 1409.66,
+    "gapWeightedEur": 574.38,
     "progressPct": 71.3,
     "securedPct": 29.5,
     "winChancePct": 60,

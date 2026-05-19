@@ -4,24 +4,42 @@ import type { ReactNode } from "react";
 import dynamic from "next/dynamic";
 import { BarChart3 } from "lucide-react";
 import type { PipelineData } from "@/lib/pipeline-types";
+import { MomentumChartLegend } from "@/components/charts/momentum-composed-chart";
 import {
   REPORT_CHART_COLORS,
   buildCategoryTotalsChart,
   buildCloseMonthCategoryChart,
   buildCountryOpenPipelineChart,
   buildCurrentMonthCloseChart,
-  buildMomentumChartData,
 } from "@/lib/chart-report-data";
+import { payloadToBarItems } from "@/lib/chart-payload";
 import type { MonthlyGoal } from "@/lib/pipeline-types";
 
-const AreaChart = dynamic(() => import("@/components/ui/area-chart").then((m) => m.AreaChart), {
-  ssr: false,
-  loading: () => (
-    <div className="h-80 w-full rounded-lg bg-slate-100 animate-pulse flex items-center justify-center text-sm text-slate-500">
+const MomentumComposedChart = dynamic(
+  () => import("@/components/charts/momentum-composed-chart"),
+  {
+    ssr: false,
+    loading: () => <ChartSkeleton />,
+  },
+);
+
+const HorizontalPipelineBarChart = dynamic(
+  () => import("@/components/charts/horizontal-pipeline-bar-chart"),
+  { ssr: false, loading: () => <ChartSkeleton /> },
+);
+
+const StackedCategoryAreaChart = dynamic(
+  () => import("@/components/charts/stacked-category-area-chart"),
+  { ssr: false, loading: () => <ChartSkeleton /> },
+);
+
+function ChartSkeleton() {
+  return (
+    <div className="h-72 w-full rounded-lg bg-slate-100 animate-pulse flex items-center justify-center text-sm text-slate-500">
       Loading chart…
     </div>
-  ),
-});
+  );
+}
 
 function ReportChartCard({
   title,
@@ -47,13 +65,14 @@ interface PipelineReportsSectionProps {
 }
 
 export default function PipelineReportsSection({ pipelineData, goal }: PipelineReportsSectionProps) {
-  const momentum = buildMomentumChartData(goal);
   const byCloseMonth = buildCloseMonthCategoryChart(pipelineData.chartSeries, pipelineData.chartMonths);
   const categoryTotals = buildCategoryTotalsChart(pipelineData.summary);
   const byCountry = buildCountryOpenPipelineChart(pipelineData.deals);
   const thisMonthClose = buildCurrentMonthCloseChart(pipelineData.deals, goal.month);
 
-  const colors = [...REPORT_CHART_COLORS];
+  const categoryBars = payloadToBarItems(categoryTotals);
+  const countryBars = payloadToBarItems(byCountry);
+  const thisMonthBars = payloadToBarItems(thisMonthClose);
 
   return (
     <section className="space-y-4">
@@ -62,7 +81,7 @@ export default function PipelineReportsSection({ pipelineData, goal }: PipelineR
         <div>
           <h2 className="section-heading text-slate-600">Pipeline reports</h2>
           <p className="text-sm text-slate-500 mt-1">
-            Visual breakdown from your last HubSpot export — stacked areas show mix; lines show cumulative momentum.
+            Visual breakdown from your last HubSpot export — gradients, tooltips, and clearer axes.
           </p>
         </div>
       </div>
@@ -72,70 +91,40 @@ export default function PipelineReportsSection({ pipelineData, goal }: PipelineR
           title="Monthly momentum"
           description="Secured (closed won), weighted forecast, and trend projection by week — same view as the briefing chart."
         >
-          <AreaChart
-            className="h-72"
-            index={momentum.index}
-            categories={momentum.categories}
-            data={momentum.data}
-            colors={["#0d9488", "#2563eb", "#78716c"]}
-            stacked={false}
-          />
+          <MomentumChartLegend />
+          <MomentumComposedChart goal={goal} className="h-72 w-full" />
         </ReportChartCard>
 
         <ReportChartCard
           title="Pipeline by close month"
-          description="Nominal € in each forecast category for deals with close date in May vs June (from export)."
+          description="Nominal € in each forecast category for deals with close date by month (from export)."
         >
-          <AreaChart
-            className="h-72"
-            index={byCloseMonth.index}
-            categories={byCloseMonth.categories}
-            data={byCloseMonth.data}
-            colors={colors}
-            stacked
-          />
+          <StackedCategoryAreaChart payload={byCloseMonth} colors={REPORT_CHART_COLORS} />
         </ReportChartCard>
 
         <ReportChartCard
           title={`Closing ${goal.monthLabel}`}
           description="Deals with close date this month — nominal € by HubSpot forecast category."
         >
-          <AreaChart
-            className="h-72"
-            index={thisMonthClose.index}
-            categories={thisMonthClose.categories}
-            data={thisMonthClose.data}
-            colors={colors}
-            stacked
-          />
+          {thisMonthBars.length > 0 ? (
+            <HorizontalPipelineBarChart items={thisMonthBars} colors={REPORT_CHART_COLORS} />
+          ) : (
+            <StackedCategoryAreaChart payload={thisMonthClose} colors={REPORT_CHART_COLORS} />
+          )}
         </ReportChartCard>
 
         <ReportChartCard
           title="Full pipeline mix"
           description="All deals in the export — split by Upside, Pipeline, Closed Won, and Not forecasted."
         >
-          <AreaChart
-            className="h-72"
-            index={categoryTotals.index}
-            categories={categoryTotals.categories}
-            data={categoryTotals.data}
-            colors={colors}
-            stacked
-          />
+          <HorizontalPipelineBarChart items={categoryBars} colors={REPORT_CHART_COLORS} />
         </ReportChartCard>
 
         <ReportChartCard
           title="Open pipeline by country"
           description="Open deals (excluding Closed Won) — top countries by nominal amount."
         >
-          <AreaChart
-            className="h-72"
-            index={byCountry.index}
-            categories={byCountry.categories}
-            data={byCountry.data}
-            colors={colors}
-            stacked
-          />
+          <HorizontalPipelineBarChart items={countryBars} colors={REPORT_CHART_COLORS} />
         </ReportChartCard>
       </div>
     </section>

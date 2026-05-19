@@ -96,6 +96,21 @@ export default function BriefBentoSection({
             value={`${pipelineHealth.staleDealCount}`}
             subtitle="Stale / early & quiet"
           />
+          {pipelineHealth.avgDealScore != null ? (
+            <MetricCell
+              title="Avg. deal score"
+              value={`${pipelineHealth.avgDealScore}`}
+              subtitle="Open deals · HubSpot 0–100"
+            />
+          ) : null}
+          {(pipelineHealth.engagementRiskCount ?? 0) > 0 ? (
+            <MetricCell
+              title="Engagement risk"
+              value={`${pipelineHealth.engagementRiskCount}`}
+              subtitle="Low touch or score"
+              valueClass="text-amber-800"
+            />
+          ) : null}
         </div>
       </div>
     </section>

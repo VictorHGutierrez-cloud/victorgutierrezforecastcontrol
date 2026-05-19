@@ -7,7 +7,7 @@ Landing para **brief semanal** com o manager: meta mensal em €, resumo executi
 ## Fluxo recomendado (toque antes do 1:1)
 
 1. No HubSpot, exportar a vista **Forecast Control** como `.xlsx`.
-2. Substituir o ficheiro na raiz do repo (nome actual do script por defeito: `hubspot-crm-exports-forecast-control-2026-05-19.xlsx`, ou passar outro nome ao comando).
+2. Guardar na raiz do repo como **`novoexport.xlsx`** (substitui o ficheiro anterior), ou passar outro caminho: `npm run generate-data -- /caminho/para/export.xlsx`.
 3. Correr `npm run generate-data` (regenera `public/data/pipeline.json` incluindo textos para o manager).
 4. `git add .`, commit, `git push` para `main` — o GitHub Actions republica em ~3–5 minutos.
 5. Enviar o link do Pages ao manager; durante a semana, alterações de forecast **só no HubSpot**.
@@ -29,7 +29,8 @@ Depois de alterar este ficheiro, volte a correr **`npm run generate-data`** para
 
 - **Secured**: valor a 100 % dos Closed Won no mês (data de fecho).
 - **Weighted**: cada deal × peso por categoria (Upside ~55 %, Pipeline ~25 %, Not forecasted ~8 % — ver `scripts/generate-pipeline-data.py`).
-- **Pipeline health**: pipe criado no mês calendar (create date), idade média dos deals abertos, lista “attention” por regra de staleness (~30 dias + actividade baixa ou estágio muito inicial).
+- **Pipeline health**: pipe criado no mês, idade média, **deal score** e **valid touchpoints** (export HubSpot), lista “attention” com motivo em linguagem clara. Deals com **próxima actividade agendada** no futuro não entram como stale.
+- Campos extra no export (quando existirem): Last Contacted, Next activity date, Demo Status, Outbound Category, etc. — o script mapeia automaticamente.
 - Bullets da secção **Executive summary** são gerados em Python a partir do export (sem IA).
 
 ## Desenvolvimento local
@@ -55,7 +56,8 @@ Variável opcional ao build estático: `NEXT_PUBLIC_SITE_URL` (URL pública impr
 
 | Caminho | Função |
 |---------|--------|
-| `hubspot-crm-exports-*.xlsx` | Export do HubSpot |
+| `novoexport.xlsx` | Export HubSpot (nome por defeito do gerador) |
+| `hubspot-crm-exports-*.xlsx` | Export anterior (referência) |
 | `public/data/dashboard-config.json` | URL HubSpot, portal EU, **monthlyQuotaEur** (meta gravada ao gerar dados) |
 | `scripts/generate-pipeline-data.py` | Excel → `pipeline.json` |
 | `public/data/pipeline.json` | Snapshot consumido pela app |

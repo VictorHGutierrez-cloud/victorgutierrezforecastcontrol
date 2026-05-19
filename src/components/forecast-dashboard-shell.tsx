@@ -66,7 +66,8 @@ function DashboardBody({
         <ol className="text-xs text-slate-600 space-y-1 max-w-xl mx-auto text-left list-decimal list-inside">
           <li>Export Forecast Control from HubSpot (xlsx).</li>
           <li>
-            Replace the file in repo, run{" "}
+            Save as <code className="text-blue-700 bg-blue-50 px-1 rounded">novoexport.xlsx</code> in the
+            project folder (or pass another path), then run{" "}
             <code className="text-blue-700 bg-blue-50 px-1 rounded">npm run generate-data</code>
             .
           </li>

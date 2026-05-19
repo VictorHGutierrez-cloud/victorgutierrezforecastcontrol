@@ -36,8 +36,10 @@ export default function DealsTable({ deals }: DealsTableProps) {
               <th className="p-3 font-medium tabular-nums">Amount</th>
               <th className="p-3 font-medium tabular-nums hidden sm:table-cell">Weighted</th>
               <th className="p-3 font-medium hidden md:table-cell">Category</th>
-              <th className="p-3 font-medium tabular-nums hidden lg:table-cell">Age</th>
-              <th className="p-3 font-medium hidden xl:table-cell">Close</th>
+              <th className="p-3 font-medium tabular-nums hidden lg:table-cell">Score</th>
+              <th className="p-3 font-medium tabular-nums hidden lg:table-cell">Touches</th>
+              <th className="p-3 font-medium tabular-nums hidden xl:table-cell">Age</th>
+              <th className="p-3 font-medium hidden 2xl:table-cell">Close</th>
               <th className="py-3 pl-3 pr-4 font-medium hidden md:table-cell">Country</th>
             </tr>
           </thead>
@@ -53,6 +55,9 @@ export default function DealsTable({ deals }: DealsTableProps) {
                   <p className="font-medium text-slate-900 line-clamp-2">{deal.name}</p>
                   {deal.partner && (
                     <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">via {deal.partner}</p>
+                  )}
+                  {deal.engagementRisk && (
+                    <p className="text-[10px] text-amber-800 mt-1 font-medium">Low engagement signal</p>
                   )}
                 </td>
                 <td className="p-3 font-mono text-slate-800 tabular-nums whitespace-nowrap">
@@ -71,9 +76,29 @@ export default function DealsTable({ deals }: DealsTableProps) {
                   </span>
                 </td>
                 <td className="p-3 text-slate-600 tabular-nums hidden lg:table-cell whitespace-nowrap">
+                  {deal.dealScore != null ? (
+                    <span
+                      className={
+                        deal.dealScore >= 70
+                          ? "text-teal-800 font-medium"
+                          : deal.dealScore >= 40
+                            ? "text-slate-700"
+                            : "text-amber-800 font-medium"
+                      }
+                    >
+                      {Math.round(deal.dealScore)}
+                    </span>
+                  ) : (
+                    "—"
+                  )}
+                </td>
+                <td className="p-3 text-slate-600 tabular-nums hidden lg:table-cell whitespace-nowrap">
+                  {deal.validTouchpoints != null ? deal.validTouchpoints : "—"}
+                </td>
+                <td className="p-3 text-slate-600 tabular-nums hidden xl:table-cell whitespace-nowrap">
                   {deal.ageDays}d
                 </td>
-                <td className="p-3 text-slate-600 hidden xl:table-cell whitespace-nowrap tabular-nums">
+                <td className="p-3 text-slate-600 hidden 2xl:table-cell whitespace-nowrap tabular-nums">
                   {formatDisplayDate(deal.closeDate ?? undefined)}
                 </td>
                 <td className="py-3 pl-3 pr-4 text-slate-600 hidden md:table-cell">{deal.country}</td>

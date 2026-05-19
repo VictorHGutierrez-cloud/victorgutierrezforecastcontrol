@@ -45,11 +45,26 @@ export default function PriorityDeals({ goal, meta }: PriorityDealsProps) {
                   ) : (
                     <p className="text-sm font-medium text-slate-900 truncate">{deal.name}</p>
                   )}
-                  <span
-                    className={`inline-block mt-1 text-[10px] px-2 py-0.5 rounded-full border ${CAT_COLOR[deal.category] ?? CAT_COLOR["Not Forecasted"]}`}
-                  >
-                    {deal.category}
-                  </span>
+                  <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                    <span
+                      className={`inline-block text-[10px] px-2 py-0.5 rounded-full border ${CAT_COLOR[deal.category] ?? CAT_COLOR["Not Forecasted"]}`}
+                    >
+                      {deal.category}
+                    </span>
+                    {deal.dealScore != null ? (
+                      <span className="text-[10px] text-slate-600 tabular-nums">
+                        Score {Math.round(deal.dealScore)}
+                      </span>
+                    ) : null}
+                    {deal.validTouchpoints != null ? (
+                      <span className="text-[10px] text-slate-600 tabular-nums">
+                        {deal.validTouchpoints} touch{deal.validTouchpoints === 1 ? "" : "es"}
+                      </span>
+                    ) : null}
+                  </div>
+                  {deal.engagementRisk ? (
+                    <p className="text-[10px] text-amber-800 font-medium mt-1">Low engagement — plan outreach</p>
+                  ) : null}
                 </div>
                 <div className="text-right shrink-0">
                   <p className="text-sm font-semibold text-slate-900 tabular-nums">{formatEur(deal.amount)}</p>

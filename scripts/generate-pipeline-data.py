@@ -4,17 +4,42 @@
 import json
 import sys
 from pathlib import Path
+from typing import Any, Optional
 
 import pandas as pd
 
 
 MONTHLY_GOAL_DEFAULT_EUR = 2000
+DEFAULT_EXPORT = "novoexport.xlsx"
 CATEGORY_WEIGHTS = {
     "Closed Won": 1.0,
     "Upside": 0.55,
     "Pipeline": 0.25,
     "Not Forecasted": 0.08,
     "Other": 0.1,
+}
+
+# HubSpot column names → internal keys (optional columns ignored if missing)
+OPTIONAL_DATE_COLUMNS = {
+    "Last Contacted": "lastContacted",
+    "Next activity date": "nextActivityDate",
+    "Next activity date including sequences": "nextActivityDate",
+    "Demo date": "demoDate",
+    "Date entered current stage": "stageEnteredDate",
+    "Closed Date": "closeDate",
+}
+
+OPTIONAL_SCALAR_COLUMNS = {
+    "Demo Status": "demoStatus",
+    "No show": "noShow",
+    "No show reason": "noShowReason",
+    "Outbound Category": "outboundCategory",
+    "In contact with Decision Maker": "inContactWithDecisionMaker",
+    "Deal stuck": "dealStuck",
+    "Deal stuck reason": "dealStuckReason",
+    "Number of calls outbound": "outboundCalls",
+    "Number of Attempts": "attemptCount",
+    "Time Between Creation and Closed Date": "daysCreationToClose",
 }
 
 
@@ -64,34 +89,217 @@ def monthly_goal_from_config(cfg: dict) -> float:
         return float(MONTHLY_GOAL_DEFAULT_EUR)
 
 
-def deal_is_stale(cat, age_days, days_since_activity, stage):
+def col_present(df: pd.DataFrame, name: str) -> bool:
+    return name in df.columns
+
+
+def safe_str(val: object, max_len: Optional[int] = None) -> str:
+    if pd.isna(val):
+        return ""
+    s = str(val).strip()
+    if max_len and len(s) > max_len:
+        return s[:max_len]
+    return s
+
+
+def safe_int(val: object) -> Optional[int]:
+    if pd.isna(val):
+        return None
+    try:
+        return int(float(val))
+    except (ValueError, TypeError):
+        return None
+
+
+def safe_float(val: object) -> Optional[float]:
+    if pd.isna(val):
+        return None
+    try:
+        return float(val)
+    except (ValueError, TypeError):
+        return None
+
+
+def iso_or_none(ts: object) -> Optional[str]:
+    if pd.isna(ts):
+        return None
+    try:
+        return pd.Timestamp(ts).isoformat()
+    except (ValueError, TypeError):
+        return None
+
+
+def days_between(today: pd.Timestamp, dt: object) -> Optional[int]:
+    if pd.isna(dt):
+        return None
+    try:
+        return int((today - pd.Timestamp(dt).normalize()).days)
+    except (ValueError, TypeError):
+        return None
+
+
+def has_scheduled_activity(next_activity: object, today: pd.Timestamp) -> bool:
+    if pd.isna(next_activity):
+        return False
+    try:
+        return pd.Timestamp(next_activity).normalize() >= today
+    except (ValueError, TypeError):
+        return False
+
+
+def effective_days_since_contact(
+    days_since_activity: Optional[int],
+    days_since_valid_touch: Optional[int],
+) -> Optional[int]:
+    """Prefer valid touchpoint recency when available."""
+    if days_since_valid_touch is not None and days_since_activity is not None:
+        return min(days_since_valid_touch, days_since_activity)
+    if days_since_valid_touch is not None:
+        return days_since_valid_touch
+    return days_since_activity
+
+
+def deal_is_stale(
+    cat: str,
+    age_days: int,
+    days_since_activity: Optional[int],
+    stage: str,
+    *,
+    days_since_valid_touch: Optional[int] = None,
+    next_activity_date: object = None,
+    today: Optional[pd.Timestamp] = None,
+) -> bool:
     if cat == "Closed Won":
         return False
+    if today is not None and has_scheduled_activity(next_activity_date, today):
+        return False
+
     stage_l = stage.lower()
     early_stage = "new deals" in stage_l or stage_l.startswith("demo")
-    dormant = (
-        days_since_activity is not None and days_since_activity >= 14
-    ) or (days_since_activity is None and age_days >= 14)
+    contact_gap = effective_days_since_contact(days_since_activity, days_since_valid_touch)
+    dormant = (contact_gap is not None and contact_gap >= 14) or (
+        contact_gap is None and age_days >= 14
+    )
     if age_days < 30:
         return False
     return dormant or early_stage
 
 
+def stale_reason(
+    cat: str,
+    age_days: int,
+    days_since_activity: Optional[int],
+    stage: str,
+    *,
+    days_since_valid_touch: Optional[int] = None,
+    next_activity_date: object = None,
+    today: Optional[pd.Timestamp] = None,
+    deal_score: Optional[float] = None,
+    valid_touchpoints: Optional[int] = None,
+) -> str:
+    if cat == "Closed Won":
+        return ""
+    if today is not None and has_scheduled_activity(next_activity_date, today):
+        return ""
+    stage_l = stage.lower()
+    contact_gap = effective_days_since_contact(days_since_activity, days_since_valid_touch)
+    parts = []
+    if "new deals" in stage_l or stage_l.startswith("demo"):
+        parts.append("early stage")
+    if contact_gap is not None and contact_gap >= 14:
+        parts.append(f"no meaningful contact in {contact_gap}d")
+    elif contact_gap is None and age_days >= 14:
+        parts.append("no activity or touchpoint dates")
+    if valid_touchpoints is not None and valid_touchpoints <= 1:
+        parts.append("low touchpoints")
+    if deal_score is not None and deal_score < 40:
+        parts.append("low deal score")
+    return " · ".join(parts) if parts else "needs follow-up"
+
+
+def parse_optional_columns(df: pd.DataFrame) -> pd.DataFrame:
+    for hubspot_col in OPTIONAL_DATE_COLUMNS:
+        if col_present(df, hubspot_col):
+            df[hubspot_col] = pd.to_datetime(df[hubspot_col], errors="coerce")
+    return df
+
+
+def export_column_report(df: pd.DataFrame, old_cols: set) -> dict:
+    present = set(df.columns)
+    new_cols = sorted(present - old_cols)
+    optional_used = [
+        c for c in {**OPTIONAL_DATE_COLUMNS, **OPTIONAL_SCALAR_COLUMNS} if c in present
+    ]
+    fill_rates = {}
+    for c in df.columns:
+        fill_rates[c] = round(float(df[c].notna().mean()) * 100, 1)
+    return {
+        "columnCount": len(present),
+        "newColumns": new_cols,
+        "optionalHubspotColumnsFound": optional_used,
+        "fillRatesPct": fill_rates,
+    }
+
+
+def row_optional_fields(r: pd.Series, today: pd.Timestamp) -> dict[str, Any]:
+    out: dict[str, Any] = {}
+    for hubspot_col, key in OPTIONAL_DATE_COLUMNS.items():
+        if hubspot_col not in r.index:
+            continue
+        val = r[hubspot_col]
+        out[key] = iso_or_none(val)
+        if key == "nextActivityDate":
+            out["hasScheduledActivity"] = has_scheduled_activity(val, today)
+    for hubspot_col, key in OPTIONAL_SCALAR_COLUMNS.items():
+        if hubspot_col not in r.index:
+            continue
+        val = r[hubspot_col]
+        if key in ("outboundCalls", "attemptCount", "daysCreationToClose"):
+            out[key] = safe_int(val)
+        elif key == "inContactWithDecisionMaker":
+            if pd.isna(val):
+                out[key] = None
+            else:
+                s = str(val).strip().lower()
+                out[key] = s in ("true", "yes", "1")
+        else:
+            out[key] = safe_str(val, 120) or None
+    return out
+
+
 def main() -> None:
     root = Path(__file__).resolve().parents[1]
-    xlsx = root / "hubspot-crm-exports-forecast-control-2026-05-19.xlsx"
+    xlsx = root / DEFAULT_EXPORT
     if len(sys.argv) > 1:
         xlsx = Path(sys.argv[1])
+    if not xlsx.is_absolute():
+        xlsx = root / xlsx
+
+    old_export = root / "hubspot-crm-exports-forecast-control-2026-05-19.xlsx"
+    old_cols: set = set()
+    if old_export.exists():
+        old_cols = set(pd.read_excel(old_export, nrows=0).columns)
 
     dash_cfg = load_dashboard_config(root)
     monthly_goal_eur = monthly_goal_from_config(dash_cfg)
 
     df = pd.read_excel(xlsx)
     df.columns = [str(c).strip() for c in df.columns]
+    column_report = export_column_report(df, old_cols)
 
-    for col in ["Close Date", "Create Date", "Last Activity Date"]:
-        df[col] = pd.to_datetime(df[col], errors="coerce")
+    for col in ["Close Date", "Create Date", "Last Activity Date", "Evaluation stage date", "Last Valid Touchpoint"]:
+        if col_present(df, col):
+            df[col] = pd.to_datetime(df[col], errors="coerce")
+    df = parse_optional_columns(df)
+
     df["Amount"] = pd.to_numeric(df["Amount"], errors="coerce").fillna(0)
+    if col_present(df, "Deal Score"):
+        df["Deal Score"] = pd.to_numeric(df["Deal Score"], errors="coerce")
+    if col_present(df, "Number of Valid Touchpoints"):
+        df["Number of Valid Touchpoints"] = pd.to_numeric(
+            df["Number of Valid Touchpoints"], errors="coerce"
+        )
+
     df["category_group"] = df["Forecast category"].apply(cat_key)
     df["close_month"] = df["Close Date"].dt.strftime("%Y-%m")
     df["create_month"] = df["Create Date"].dt.strftime("%Y-%m")
@@ -105,9 +313,23 @@ def main() -> None:
         return int((today - r["Create Date"].normalize()).days)
 
     def row_days_since_activity(r):
-        if pd.isna(r["Last Activity Date"]):
+        return days_between(today, r.get("Last Activity Date"))
+
+    def row_days_since_valid_touch(r):
+        if not col_present(df, "Last Valid Touchpoint"):
             return None
-        return int((today - r["Last Activity Date"]).days)
+        return days_between(today, r.get("Last Valid Touchpoint"))
+
+    def row_days_in_evaluation(r):
+        if not col_present(df, "Evaluation stage date"):
+            return None
+        return days_between(today, r.get("Evaluation stage date"))
+
+    def row_next_activity(r):
+        for col in ("Next activity date including sequences", "Next activity date"):
+            if col_present(df, col):
+                return r.get(col)
+        return None
 
     months = sorted(df["close_month"].dropna().unique())
     cats = ["Upside", "Pipeline", "Closed Won", "Not Forecasted"]
@@ -127,39 +349,61 @@ def main() -> None:
         w = float(r["Amount"]) * CATEGORY_WEIGHTS.get(cat, 0.1)
         age_days = row_age_days(r)
         dsa = row_days_since_activity(r)
-        deals.append(
-            {
-                "id": str(r["Record ID"]),
-                "name": str(r["Deal Name"]) if pd.notna(r["Deal Name"]) else "",
-                "amount": float(r["Amount"]),
-                "weightedAmount": round(w, 2),
-                "closeDate": r["Close Date"].isoformat() if pd.notna(r["Close Date"]) else None,
-                "createDate": r["Create Date"].isoformat() if pd.notna(r["Create Date"]) else None,
-                "ageDays": age_days,
-                "daysSinceActivity": dsa if dsa is not None else None,
-                "country": str(r["Company country name"])
-                if pd.notna(r["Company country name"])
-                else "",
-                "category": cat,
-                "stage": str(r["Deal Stage"]) if pd.notna(r["Deal Stage"]) else "",
-                "partner": (
-                    str(r["Partner name"])
-                    if pd.notna(r["Partner name"])
-                    else (str(r["Associated Partner"]) if pd.notna(r["Associated Partner"]) else "")
-                ),
-                "employees": int(r["Revised number of employees"])
-                if pd.notna(r["Revised number of employees"])
-                else None,
-                "activities": int(r["Number of Sales Activities"])
-                if pd.notna(r["Number of Sales Activities"])
-                else 0,
-                "lastActivity": r["Last Activity Date"].isoformat()
-                if pd.notna(r["Last Activity Date"])
-                else None,
-                "nextStep": str(r["Next step"])[:280] if pd.notna(r["Next step"]) else "",
-                "closeMonthKey": str(r["close_month"]) if pd.notna(r["close_month"]) else "",
-            }
-        )
+        dsvt = row_days_since_valid_touch(r)
+        deal_score = safe_float(r["Deal Score"]) if col_present(df, "Deal Score") else None
+        touchpoints = safe_int(r["Number of Valid Touchpoints"]) if col_present(
+            df, "Number of Valid Touchpoints"
+        ) else None
+        next_act = row_next_activity(r)
+
+        deal: dict[str, Any] = {
+            "id": str(r["Record ID"]),
+            "name": safe_str(r["Deal Name"]),
+            "amount": float(r["Amount"]),
+            "weightedAmount": round(w, 2),
+            "closeDate": iso_or_none(r["Close Date"]),
+            "createDate": iso_or_none(r["Create Date"]),
+            "ageDays": age_days,
+            "daysSinceActivity": dsa,
+            "daysSinceValidTouchpoint": dsvt,
+            "country": safe_str(r["Company country name"]),
+            "category": cat,
+            "stage": safe_str(r["Deal Stage"]),
+            "partner": safe_str(r["Partner name"]) or safe_str(r["Associated Partner"]),
+            "employees": safe_int(r["Revised number of employees"]),
+            "activities": safe_int(r["Number of Sales Activities"]) or 0,
+            "lastActivity": iso_or_none(r["Last Activity Date"]),
+            "nextStep": safe_str(r["Next step"], 280),
+            "closeMonthKey": str(r["close_month"]) if pd.notna(r["close_month"]) else "",
+            "dealScore": deal_score,
+            "evaluationStageDate": iso_or_none(r["Evaluation stage date"])
+            if col_present(df, "Evaluation stage date")
+            else None,
+            "daysInEvaluation": row_days_in_evaluation(r),
+            "validTouchpoints": touchpoints,
+            "lastValidTouchpoint": iso_or_none(r["Last Valid Touchpoint"])
+            if col_present(df, "Last Valid Touchpoint")
+            else None,
+            "isStale": deal_is_stale(
+                cat,
+                age_days,
+                dsa,
+                safe_str(r["Deal Stage"]),
+                days_since_valid_touch=dsvt,
+                next_activity_date=next_act,
+                today=today,
+            ),
+            "engagementRisk": (
+                cat != "Closed Won"
+                and (
+                    (touchpoints is not None and touchpoints <= 1)
+                    or (dsvt is not None and dsvt >= 14)
+                    or (deal_score is not None and deal_score < 40)
+                )
+            ),
+        }
+        deal.update(row_optional_fields(r, today))
+        deals.append(deal)
 
     upside = df[df["category_group"] == "Upside"]
     pipeline = df[df["category_group"] == "Pipeline"]
@@ -229,7 +473,6 @@ def main() -> None:
         for pt in trend_points:
             pt["trend"] = pt["weighted"]
 
-    # Pipeline health
     created_this_month = df[df["create_month"] == month_key]
     created_this_month_eur = float(created_this_month["Amount"].sum())
 
@@ -245,23 +488,66 @@ def main() -> None:
     else:
         avg_age_days = 0.0
 
+    open_deals = [d for d in deals if d["category"] != "Closed Won"]
+    scores = [d["dealScore"] for d in open_deals if d.get("dealScore") is not None]
+    avg_deal_score = round(sum(scores) / len(scores), 1) if scores else None
+    low_score_count = sum(1 for d in open_deals if (d.get("dealScore") or 100) < 40)
+    engagement_risk_count = sum(1 for d in open_deals if d.get("engagementRisk"))
+    scheduled_followups = sum(1 for d in open_deals if d.get("hasScheduledActivity"))
+    no_eval_date_count = sum(
+        1
+        for d in open_deals
+        if d.get("evaluationStageDate") is None and "evaluation" in d.get("stage", "").lower()
+    )
+
     stale_list = []
+    stale_n = 0
     for _, r in df.iterrows():
         cat = r["category_group"]
         age_d = row_age_days(r)
         dsa = row_days_since_activity(r)
-        stage = str(r["Deal Stage"]) if pd.notna(r["Deal Stage"]) else ""
-        if not deal_is_stale(cat, age_d, dsa, stage):
+        dsvt = row_days_since_valid_touch(r)
+        stage = safe_str(r["Deal Stage"])
+        next_act = row_next_activity(r)
+        deal_score = safe_float(r["Deal Score"]) if col_present(df, "Deal Score") else None
+        touchpoints = safe_int(r["Number of Valid Touchpoints"]) if col_present(
+            df, "Number of Valid Touchpoints"
+        ) else None
+        if not deal_is_stale(
+            cat,
+            age_d,
+            dsa,
+            stage,
+            days_since_valid_touch=dsvt,
+            next_activity_date=next_act,
+            today=today,
+        ):
             continue
+        stale_n += 1
+        reason = stale_reason(
+            cat,
+            age_d,
+            dsa,
+            stage,
+            days_since_valid_touch=dsvt,
+            next_activity_date=next_act,
+            today=today,
+            deal_score=deal_score,
+            valid_touchpoints=touchpoints,
+        )
         stale_list.append(
             {
                 "id": str(r["Record ID"]),
-                "name": str(r["Deal Name"]) if pd.notna(r["Deal Name"]) else "",
+                "name": safe_str(r["Deal Name"]),
                 "amount": float(r["Amount"]),
                 "stage": stage,
                 "ageDays": age_d,
                 "daysSinceActivity": dsa,
+                "daysSinceValidTouchpoint": dsvt,
                 "category": cat,
+                "dealScore": deal_score,
+                "validTouchpoints": touchpoints,
+                "reason": reason,
             }
         )
     stale_list = sorted(stale_list, key=lambda x: (-(x["ageDays"] or 0), -x["amount"]))[:5]
@@ -270,6 +556,7 @@ def main() -> None:
     for _, r in month_deals.sort_values("Amount", ascending=False).iterrows():
         if r["category_group"] == "Closed Won":
             continue
+        d_match = next((d for d in deals if d["id"] == str(r["Record ID"])), None)
         priority_deals.append(
             {
                 "id": str(r["Record ID"]),
@@ -284,11 +571,45 @@ def main() -> None:
                 "closeDate": r["Close Date"].strftime("%Y-%m-%d")
                 if pd.notna(r["Close Date"])
                 else None,
-                "nextStep": str(r["Next step"])[:200] if pd.notna(r["Next step"]) else "",
+                "nextStep": safe_str(r["Next step"], 200),
+                "dealScore": d_match.get("dealScore") if d_match else None,
+                "validTouchpoints": d_match.get("validTouchpoints") if d_match else None,
+                "daysSinceValidTouchpoint": d_match.get("daysSinceValidTouchpoint")
+                if d_match
+                else None,
+                "engagementRisk": bool(d_match.get("engagementRisk")) if d_match else False,
             }
         )
 
-    # Executive bullets (template-based)
+    improvement_bullets: list[str] = []
+    if engagement_risk_count:
+        improvement_bullets.append(
+            f"{engagement_risk_count} open deal(s) show engagement risk "
+            "(≤1 valid touchpoint, 14+ days since last touch, or score under 40)."
+        )
+    if low_score_count:
+        improvement_bullets.append(
+            f"{low_score_count} open deal(s) have HubSpot deal score below 40 — revisit qualification and next steps."
+        )
+    if scheduled_followups:
+        improvement_bullets.append(
+            f"{scheduled_followups} open deal(s) already have a future activity scheduled "
+            "(excluded from stale flags)."
+        )
+    if no_eval_date_count:
+        improvement_bullets.append(
+            f"{no_eval_date_count} deal(s) in evaluation stage missing evaluation date — "
+            "add dates in HubSpot for velocity tracking."
+        )
+    if col_present(df, "Number of Valid Touchpoints"):
+        tp_vals = df.loc[open_mask, "Number of Valid Touchpoints"].dropna()
+        if len(tp_vals):
+            avg_tp = round(float(tp_vals.mean()), 1)
+            improvement_bullets.append(
+                f"Average valid touchpoints on open deals: {avg_tp} "
+                "(aim for steady outbound + discovery touches on upside deals)."
+            )
+
     top_priority = priority_deals[0] if priority_deals else None
     bullets = [
         f"Monthly goal €{monthly_goal_eur:,.0f}: {progress_pct:.0f}% by weighted forecast — "
@@ -296,27 +617,31 @@ def main() -> None:
         f"Estimated chance to reach goal this month: ~{win_chance}%. Gap to target: €{gap:,.0f}.",
     ]
     if top_priority:
+        score_bit = ""
+        if top_priority.get("dealScore") is not None:
+            score_bit = f", score {top_priority['dealScore']:.0f}"
+        touch_bit = ""
+        if top_priority.get("validTouchpoints") is not None:
+            touch_bit = f", {top_priority['validTouchpoints']} valid touchpoint(s)"
         bullets.append(
-            f"Largest upside this month on the board: «{top_priority['name']}» "
-            f"({top_priority['amount']:,.0f} € nominal, €{top_priority['weighted']:,.0f} weighted)."
+            f"Largest upside this month: «{top_priority['name']}» "
+            f"({top_priority['amount']:,.0f} € nominal, €{top_priority['weighted']:,.0f} weighted"
+            f"{score_bit}{touch_bit})."
         )
     bullets.append(
         f"Pipe created (by create date) in {today.strftime('%B')}: €{created_this_month_eur:,.0f} "
         f"({len(created_this_month)} deals)."
     )
-    stale_n = sum(
-        deal_is_stale(
-            cat_key(r["Forecast category"]),
-            row_age_days(r),
-            row_days_since_activity(r),
-            str(r["Deal Stage"]) if pd.notna(r["Deal Stage"]) else "",
+    if avg_deal_score is not None:
+        bullets.append(
+            f"Open pipeline average deal score: {avg_deal_score} "
+            f"(HubSpot 0–100; higher = healthier engagement signals)."
         )
-        for _, r in df.iterrows()
-    )
     bullets.append(
-        f"Deals flagged for attention (stale or early-stage + dormant): {stale_n}. "
-        f"Forecast detail and edits: HubSpot."
+        f"Deals flagged for attention (stale / early-stage + quiet, excluding scheduled follow-ups): "
+        f"{stale_n}. Forecast detail and edits: HubSpot."
     )
+    bullets.extend(improvement_bullets[:3])
 
     payload = {
         "meta": {
@@ -324,11 +649,12 @@ def main() -> None:
             "role": "Partner Account Executive",
             "team": "ROW",
             "exportedAt": pd.Timestamp.now().strftime("%Y-%m-%d"),
-            "source": "HubSpot CRM — Forecast Control",
+            "source": f"HubSpot CRM — {xlsx.name}",
             "briefTitle": "ROW Pipeline Brief",
             "hubspotForecastUrl": str(dash_cfg.get("hubspotForecastUrl") or ""),
             "hubspotPortalId": str(dash_cfg.get("hubspotPortalId") or ""),
             "hubspotDealBaseOrigin": str(dash_cfg.get("hubspotDealBaseOrigin") or ""),
+            "exportFile": xlsx.name,
         },
         "summary": {
             "totalDeals": len(df),
@@ -344,6 +670,9 @@ def main() -> None:
             "avgDealSize": round(float(df["Amount"].mean()), 2),
             "totalActivities": int(df["Number of Sales Activities"].sum()),
             "countries": sorted(df["Company country name"].dropna().unique().tolist()),
+            "avgDealScore": avg_deal_score,
+            "engagementRiskCount": engagement_risk_count,
+            "scheduledFollowupCount": scheduled_followups,
         },
         "pipelineHealth": {
             "month": month_key,
@@ -351,8 +680,13 @@ def main() -> None:
             "createdThisMonthEur": round(created_this_month_eur, 2),
             "createdThisMonthCount": int(len(created_this_month)),
             "avgDealAgeDays": avg_age_days,
+            "avgDealScore": avg_deal_score,
+            "engagementRiskCount": engagement_risk_count,
+            "lowDealScoreCount": low_score_count,
+            "scheduledFollowupCount": scheduled_followups,
             "staleDealCount": int(stale_n),
             "staleDeals": stale_list[:5],
+            "improvementPoints": improvement_bullets,
         },
         "executiveBullets": bullets,
         "chartSeries": chart,
@@ -376,12 +710,20 @@ def main() -> None:
             deals,
             key=lambda d: (-(d.get("closeMonthKey") == month_key), -d["weightedAmount"]),
         ),
+        "columnReport": column_report,
     }
 
     out = root / "public" / "data" / "pipeline.json"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(payload, indent=2))
-    print(f"Wrote {out} ({len(deals)} deals)")
+    print(f"Wrote {out} ({len(deals)} deals) from {xlsx.name}")
+    if column_report["newColumns"]:
+        print("New columns vs old export:", ", ".join(column_report["newColumns"]))
+    if column_report["optionalHubspotColumnsFound"]:
+        print(
+            "Optional HubSpot columns detected:",
+            ", ".join(column_report["optionalHubspotColumnsFound"]),
+        )
 
 
 if __name__ == "__main__":

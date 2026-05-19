@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Activity, AlertTriangle, CalendarPlus } from "lucide-react";
+import { Activity, AlertTriangle, CalendarPlus, Target, TrendingDown } from "lucide-react";
 import type { PipelineHealth, PipelineMeta } from "@/lib/pipeline-types";
 import { formatEur, hubspotDealUrl } from "@/lib/utils";
 
@@ -20,10 +20,10 @@ export default function PipelineHealthPanel({ health, meta }: PipelineHealthProp
     >
       <h2 className="text-lg font-semibold text-slate-900 mb-1">Pipeline health</h2>
       <p className="text-xs text-slate-500 mb-6">
-        From create date &amp; last activity · Complements close-date forecast above
+        Deal score, valid touchpoints &amp; activity · Stale flags skip deals with a future task scheduled
       </p>
 
-      <div className="grid sm:grid-cols-3 gap-4 mb-8">
+      <motion.div layout className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <div className="rounded-lg bg-slate-50 border border-slate-200 p-4">
           <CalendarPlus className="w-4 h-4 text-slate-700 mb-2" aria-hidden />
           <p className="text-[10px] uppercase tracking-wide text-slate-500">Created this month</p>
@@ -36,13 +36,43 @@ export default function PipelineHealthPanel({ health, meta }: PipelineHealthProp
           <p className="text-xl font-semibold text-slate-900 tabular-nums">{health.avgDealAgeDays} days</p>
           <p className="text-[10px] text-slate-500 mt-1">Open pipeline (excl. closed won)</p>
         </div>
+        {health.avgDealScore != null ? (
+          <motion.div layout className="rounded-lg bg-teal-50 border border-teal-200 p-4">
+            <Target className="w-4 h-4 text-teal-800 mb-2" aria-hidden />
+            <p className="text-[10px] uppercase tracking-wide text-teal-900/70">Avg. deal score</p>
+            <p className="text-xl font-semibold text-teal-950 tabular-nums">{health.avgDealScore}</p>
+            <p className="text-[10px] text-teal-900/70 mt-1">HubSpot 0–100 on open deals</p>
+          </motion.div>
+        ) : null}
         <div className="rounded-lg bg-amber-50 border border-amber-200 p-4">
           <AlertTriangle className="w-4 h-4 text-amber-800 mb-2" aria-hidden />
           <p className="text-[10px] uppercase tracking-wide text-amber-900/70">Needs attention</p>
           <p className="text-xl font-semibold text-amber-950 tabular-nums">{health.staleDealCount}</p>
-          <p className="text-[10px] text-amber-900/70 mt-1">Stale / early + quiet</p>
+          <p className="text-[10px] text-amber-900/70 mt-1">
+            Stale / early + quiet
+            {(health.scheduledFollowupCount ?? 0) > 0
+              ? ` · ${health.scheduledFollowupCount} follow-up(s) scheduled`
+              : ""}
+          </p>
         </div>
-      </div>
+      </motion.div>
+
+      {(health.improvementPoints?.length ?? 0) > 0 ? (
+        <div className="mb-8 rounded-lg border border-blue-100 bg-blue-50/60 p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <TrendingDown className="w-4 h-4 text-blue-800" aria-hidden />
+            <h3 className="text-sm font-medium text-slate-900">Improvement points</h3>
+          </div>
+          <ul className="space-y-1.5 text-sm text-slate-700">
+            {health.improvementPoints!.map((line, i) => (
+              <li key={i} className="flex gap-2 leading-relaxed">
+                <span className="text-blue-600 shrink-0">•</span>
+                <span>{line}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
 
       <h3 className="text-sm font-medium text-slate-800 mb-3">Top deals flagged</h3>
       {health.staleDeals.length === 0 ? (
@@ -70,16 +100,22 @@ export default function PipelineHealthPanel({ health, meta }: PipelineHealthProp
                     <span className="text-slate-900 font-medium truncate block">{d.name}</span>
                   )}
                   <span className="text-[11px] text-slate-500">{d.stage}</span>
+                  {d.reason ? (
+                    <p className="text-[11px] text-amber-900/80 mt-0.5">{d.reason}</p>
+                  ) : null}
                 </div>
                 <div className="text-right text-xs text-slate-600 tabular-nums shrink-0">
                   <span className="text-slate-800">{formatEur(d.amount)}</span>
                   <span className="mx-1">·</span>
                   age {d.ageDays}d
-                  {d.daysSinceActivity != null ? (
+                  {d.daysSinceValidTouchpoint != null ? (
+                    <span> · last touch {d.daysSinceValidTouchpoint}d ago</span>
+                  ) : d.daysSinceActivity != null ? (
                     <span> · last act {d.daysSinceActivity}d ago</span>
                   ) : (
                     <span> · no activity date</span>
                   )}
+                  {d.dealScore != null ? <span> · score {Math.round(d.dealScore)}</span> : null}
                 </div>
               </li>
             );

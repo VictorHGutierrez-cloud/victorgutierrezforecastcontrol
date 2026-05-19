@@ -8,7 +8,21 @@ export interface ChartSeries {
   data: ChartDataPoint[];
 }
 
-export interface PipelineDeal {
+/** Optional HubSpot fields — present when included in export */
+export interface DealEngagementExtras {
+  lastContacted?: string | null;
+  nextActivityDate?: string | null;
+  hasScheduledActivity?: boolean;
+  demoStatus?: string | null;
+  noShow?: string | null;
+  outboundCategory?: string | null;
+  inContactWithDecisionMaker?: boolean | null;
+  dealStuck?: string | null;
+  outboundCalls?: number | null;
+  attemptCount?: number | null;
+}
+
+export interface PipelineDeal extends DealEngagementExtras {
   id: string;
   name: string;
   amount: number;
@@ -17,6 +31,7 @@ export interface PipelineDeal {
   createDate: string | null;
   ageDays: number;
   daysSinceActivity: number | null;
+  daysSinceValidTouchpoint?: number | null;
   country: string;
   category: string;
   stage: string;
@@ -26,6 +41,13 @@ export interface PipelineDeal {
   lastActivity: string | null;
   nextStep: string;
   closeMonthKey: string;
+  dealScore?: number | null;
+  evaluationStageDate?: string | null;
+  daysInEvaluation?: number | null;
+  validTouchpoints?: number | null;
+  lastValidTouchpoint?: string | null;
+  isStale?: boolean;
+  engagementRisk?: boolean;
 }
 
 export interface PipelineSummary {
@@ -42,6 +64,9 @@ export interface PipelineSummary {
   avgDealSize: number;
   totalActivities: number;
   countries: string[];
+  avgDealScore?: number | null;
+  engagementRiskCount?: number;
+  scheduledFollowupCount?: number;
 }
 
 export interface StaleDeal {
@@ -51,7 +76,11 @@ export interface StaleDeal {
   stage: string;
   ageDays: number;
   daysSinceActivity: number | null;
+  daysSinceValidTouchpoint?: number | null;
   category: string;
+  dealScore?: number | null;
+  validTouchpoints?: number | null;
+  reason?: string;
 }
 
 export interface PipelineHealth {
@@ -60,8 +89,13 @@ export interface PipelineHealth {
   createdThisMonthEur: number;
   createdThisMonthCount: number;
   avgDealAgeDays: number;
+  avgDealScore?: number | null;
+  engagementRiskCount?: number;
+  lowDealScoreCount?: number;
+  scheduledFollowupCount?: number;
   staleDealCount: number;
   staleDeals: StaleDeal[];
+  improvementPoints?: string[];
 }
 
 export interface GoalTrendPoint {
@@ -80,6 +114,10 @@ export interface PriorityDeal {
   weighted: number;
   closeDate: string | null;
   nextStep: string;
+  dealScore?: number | null;
+  validTouchpoints?: number | null;
+  daysSinceValidTouchpoint?: number | null;
+  engagementRisk?: boolean;
 }
 
 export interface MonthlyGoal {
@@ -109,6 +147,14 @@ export interface PipelineMeta {
   hubspotPortalId: string;
   /** e.g. https://app-eu1.hubspot.com — omit or empty for global app.hubspot.com */
   hubspotDealBaseOrigin?: string;
+  exportFile?: string;
+}
+
+export interface ColumnReport {
+  columnCount: number;
+  newColumns: string[];
+  optionalHubspotColumnsFound: string[];
+  fillRatesPct: Record<string, number>;
 }
 
 export interface PipelineData {
@@ -120,4 +166,5 @@ export interface PipelineData {
   chartMonths: string[];
   goal: MonthlyGoal;
   deals: PipelineDeal[];
+  columnReport?: ColumnReport;
 }

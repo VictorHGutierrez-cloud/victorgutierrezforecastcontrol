@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import CountUp from "react-countup";
 import {
   StackedNormalizedAreaChart,
   LinearXAxis,
@@ -84,6 +83,11 @@ interface PipelineForecastReportProps {
 export default function PipelineForecastReport({ data }: PipelineForecastReportProps) {
   const { summary, chartMonths } = data;
   const [periodIndex, setPeriodIndex] = useState(0);
+  const [chartReady, setChartReady] = useState(false);
+
+  useEffect(() => {
+    setChartReady(true);
+  }, []);
 
   const periodOptions = useMemo(
     () =>
@@ -226,7 +230,12 @@ export default function PipelineForecastReport({ data }: PipelineForecastReportP
         ))}
       </div>
 
-      <div className="reaviz-chart-container h-[280px] px-2">
+      <motion.div className="reaviz-chart-container h-[280px] px-2">
+        {!chartReady ? (
+          <div className="h-full w-full rounded-xl bg-slate-100 dark:bg-slate-800/50 animate-pulse flex items-center justify-center text-slate-500 text-sm">
+            Loading chart…
+          </div>
+        ) : (
         <StackedNormalizedAreaChart
           height={280}
           id="pipeline-stacked-normalized"
@@ -281,29 +290,18 @@ export default function PipelineForecastReport({ data }: PipelineForecastReportP
             <GridlineSeries line={<Gridline strokeColor="var(--reaviz-gridline-stroke)" />} />
           }
         />
-      </div>
+        )}
+      </motion.div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 24 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="flex flex-col sm:flex-row w-full pl-8 pr-8 justify-between pb-2 pt-8 gap-4 sm:gap-8"
-      >
+      <div className="flex flex-col sm:flex-row w-full pl-8 pr-8 justify-between pb-2 pt-8 gap-4 sm:gap-8">
         {summaryStats.map((stat) => (
           <div key={stat.id} className="flex flex-col gap-2 w-full sm:w-1/2">
             <span className="text-xl text-gray-800 dark:text-gray-200">{stat.title}</span>
             <div className="flex items-center gap-2">
-              <CountUp
-                className="font-mono text-3xl sm:text-4xl font-semibold text-gray-900 dark:text-white"
-                start={0}
-                end={stat.count}
-                duration={2}
-                formattingFn={(v) => formatCompact(v)}
-              />
+              <span className="font-mono text-3xl sm:text-4xl font-semibold text-gray-900 dark:text-white">
+                {formatCompact(stat.count)}
+              </span>
               <motion.div
-                initial={{ opacity: 0, y: 24 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
                 className={`flex ${stat.trendBgColor} p-1 pl-2 pr-2 items-center rounded-full ${stat.trendColor} text-sm font-medium`}
               >
                 <stat.TrendIconSvg strokeColor={stat.id === "upside" ? "#A5B4FC" : "#6EE7B7"} />
@@ -313,7 +311,7 @@ export default function PipelineForecastReport({ data }: PipelineForecastReportP
             <span className="text-gray-500 dark:text-gray-400 text-sm">{stat.comparisonText}</span>
           </div>
         ))}
-      </motion.div>
+      </div>
 
       <div className="flex flex-col pl-8 pr-8 font-mono divide-y divide-gray-200 dark:divide-slate-800 mt-4">
         {detailedMetrics.map((metric) => (

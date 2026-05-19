@@ -38,6 +38,7 @@ jobs:
         run: |
           npm ci
           npm run build
+          touch out/.nojekyll
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

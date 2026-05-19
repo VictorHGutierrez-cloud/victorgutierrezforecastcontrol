@@ -48,8 +48,19 @@ export default function HomePage() {
 
         <DealsTable deals={data.deals} />
 
-        <footer className="text-center text-xs text-slate-600 pb-10">
-          {data.meta.source} · {data.meta.owner} · Team {data.meta.team}
+        <footer className="text-center text-xs text-slate-500 pb-10 px-4 space-y-2">
+          <p>
+            <strong className="text-slate-400">URL oficial do site:</strong>{" "}
+            <a
+              href="https://victorhgutierrez-cloud.github.io/victorgutierrezforecastcontrol/"
+              className="text-indigo-400 hover:underline break-all"
+            >
+              victorhgutierrez-cloud.github.io/victorgutierrezforecastcontrol
+            </a>
+          </p>
+          <p>
+            {data.meta.source} · {data.meta.owner} · Team {data.meta.team}
+          </p>
         </footer>
       </div>
     </main>

@@ -28,3 +28,22 @@ export function formatCurrency(value: number): string {
 export function formatCompact(value: number): string {
   return formatCompactEur(value);
 }
+
+export function hubspotDealUrl(portalId: string | undefined, dealId: string): string | null {
+  const p = (portalId ?? "").trim();
+  if (!p) return null;
+  return `https://app.hubspot.com/contacts/${p}/deal/${dealId}`;
+}
+
+export function formatDisplayDate(iso: string | undefined): string {
+  if (!iso) return "—";
+  try {
+    return new Date(iso).toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  } catch {
+    return iso;
+  }
+}

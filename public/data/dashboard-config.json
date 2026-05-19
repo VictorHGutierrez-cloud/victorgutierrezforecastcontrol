@@ -1,0 +1,5 @@
+{
+  "hubspotForecastUrl": "https://app.hubspot.com/deals/",
+  "hubspotPortalId": "",
+  "_comment": "Set hubspotForecastUrl to your HubSpot Forecast or Pipeline view URL. Optionally set portalId so deal links resolve (e.g. 12345678)."
+}

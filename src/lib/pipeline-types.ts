@@ -12,7 +12,11 @@ export interface PipelineDeal {
   id: string;
   name: string;
   amount: number;
+  weightedAmount: number;
   closeDate: string | null;
+  createDate: string | null;
+  ageDays: number;
+  daysSinceActivity: number | null;
   country: string;
   category: string;
   stage: string;
@@ -21,6 +25,7 @@ export interface PipelineDeal {
   activities: number;
   lastActivity: string | null;
   nextStep: string;
+  closeMonthKey: string;
 }
 
 export interface PipelineSummary {
@@ -39,6 +44,26 @@ export interface PipelineSummary {
   countries: string[];
 }
 
+export interface StaleDeal {
+  id: string;
+  name: string;
+  amount: number;
+  stage: string;
+  ageDays: number;
+  daysSinceActivity: number | null;
+  category: string;
+}
+
+export interface PipelineHealth {
+  month: string;
+  monthLabel: string;
+  createdThisMonthEur: number;
+  createdThisMonthCount: number;
+  avgDealAgeDays: number;
+  staleDealCount: number;
+  staleDeals: StaleDeal[];
+}
+
 export interface GoalTrendPoint {
   week: string;
   secured: number;
@@ -48,11 +73,13 @@ export interface GoalTrendPoint {
 }
 
 export interface PriorityDeal {
+  id: string;
   name: string;
   amount: number;
   category: string;
   weighted: number;
   closeDate: string | null;
+  nextStep: string;
 }
 
 export interface MonthlyGoal {
@@ -77,11 +104,16 @@ export interface PipelineMeta {
   team: string;
   exportedAt: string;
   source: string;
+  briefTitle: string;
+  hubspotForecastUrl: string;
+  hubspotPortalId: string;
 }
 
 export interface PipelineData {
   meta: PipelineMeta;
   summary: PipelineSummary;
+  pipelineHealth: PipelineHealth;
+  executiveBullets: string[];
   chartSeries: ChartSeries[];
   chartMonths: string[];
   goal: MonthlyGoal;

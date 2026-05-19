@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Target, TrendingUp, Wallet, Calendar } from "lucide-react";
+import { HelpCircle, Target, TrendingUp, Wallet, Calendar } from "lucide-react";
 import type { MonthlyGoal } from "@/lib/pipeline-types";
 import { formatEur } from "@/lib/utils";
 
@@ -24,7 +24,7 @@ export default function GoalTracker({ goal }: GoalTrackerProps) {
     <motion.section
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-2xl border border-white/10 bg-gradient-to-br from-slate-900/90 to-slate-950/90 p-6 sm:p-8 backdrop-blur-xl shadow-2xl shadow-black/40"
+      className="rounded-2xl border border-white/10 bg-slate-900/70 p-6 sm:p-8 backdrop-blur-xl"
     >
       <motion.div className="flex flex-col lg:flex-row gap-8 items-center">
         <div className="relative shrink-0">
@@ -76,23 +76,66 @@ export default function GoalTracker({ goal }: GoalTrackerProps) {
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {[
-              { icon: Wallet, label: "Secured", value: formatEur(goal.securedEur), sub: "Closed won" },
-              { icon: TrendingUp, label: "Weighted", value: formatEur(goal.weightedEur), sub: "Forecast" },
-              { icon: Target, label: "Gap", value: formatEur(goal.gapEur), sub: "To target" },
-              { icon: Calendar, label: "Days left", value: String(goal.daysLeft), sub: "In month" },
-            ].map((item) => (
+            {(
+              [
+                {
+                  icon: Wallet,
+                  label: "Secured",
+                  value: formatEur(goal.securedEur),
+                  sub: "Closed won",
+                  tip: "100% of Closed Won deal value in this calendar month (close date).",
+                },
+                {
+                  icon: TrendingUp,
+                  label: "Weighted",
+                  value: formatEur(goal.weightedEur),
+                  sub: "Forecast",
+                  tip: "Each deal amount × category weight (Upside 55%, Pipeline 25%, Not forecasted 8%, etc.).",
+                },
+                {
+                  icon: Target,
+                  label: "Gap",
+                  value: formatEur(goal.gapEur),
+                  sub: "To target",
+                  tip: "Remaining weighted € to reach the monthly goal.",
+                },
+                {
+                  icon: Calendar,
+                  label: "Days left",
+                  value: String(goal.daysLeft),
+                  sub: "In month",
+                  tip: "",
+                },
+              ] as const
+            ).map((item) => (
               <div
                 key={item.label}
                 className="rounded-xl bg-white/5 border border-white/8 px-3 py-3"
               >
-                <item.icon className="w-4 h-4 text-slate-400 mb-1" />
+                <div className="flex items-start justify-between gap-1 mb-1">
+                  <item.icon className="w-4 h-4 text-slate-400" />
+                  {item.tip ? (
+                    <button
+                      type="button"
+                      title={item.tip}
+                      className="text-slate-500 hover:text-slate-400 p-0.5 shrink-0"
+                      aria-label={`What is ${item.label}?`}
+                    >
+                      <HelpCircle className="w-3.5 h-3.5" />
+                    </button>
+                  ) : null}
+                </div>
                 <p className="text-[10px] uppercase tracking-wide text-slate-500">{item.label}</p>
                 <p className="text-lg font-semibold text-white tabular-nums">{item.value}</p>
                 <p className="text-[10px] text-slate-500">{item.sub}</p>
               </div>
             ))}
           </div>
+
+          <p className="text-xs text-slate-500">
+            Per-deal forecast and edits: use HubSpot · This page reflects the last spreadsheet export
+            only.
+          </p>
 
           <div className="rounded-xl bg-indigo-500/10 border border-indigo-500/20 px-4 py-3 flex flex-wrap items-center justify-between gap-3">
             <div>

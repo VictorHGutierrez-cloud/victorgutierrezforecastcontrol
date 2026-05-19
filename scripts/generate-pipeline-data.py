@@ -688,9 +688,9 @@ def main() -> None:
             else "—"
         )
         bullets.append(
-            f"Conversão snapshot (sem First Demo): {conversion_snapshot['ratePct']:.1f}% "
+            f"Conversion snapshot (excl. First Demo): {conversion_snapshot['ratePct']:.1f}% "
             f"({conversion_snapshot['wonCount']}/{conversion_snapshot['funnelCount']} Won+Upside+Pipeline). "
-            f"Ciclo médio (ganhos fechados): {cyl} dias em {conversion_snapshot['cycleSampleCount']} deal(s)."
+            f"Average closed-won sales cycle: {cyl} days across {conversion_snapshot['cycleSampleCount']} deal(s)."
         )
     bullets.extend(improvement_bullets[:3])
 

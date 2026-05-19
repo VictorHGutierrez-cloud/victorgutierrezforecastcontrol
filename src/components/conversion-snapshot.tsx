@@ -1,9 +1,9 @@
 "use client";
 
-import type { ConversionSnapshot as ConversionSnapshotProps } from "@/lib/pipeline-types";
+import type { ConversionSnapshot } from "@/lib/pipeline-types";
 
 interface ConversionSnapshotBannerProps {
-  snapshot: ConversionSnapshotProps;
+  snapshot: ConversionSnapshot;
 }
 
 /** Conversion % and average closed-won cycle; excludes Deal Stage rows containing «First Demo» (computed in Python). */
@@ -17,7 +17,7 @@ export default function ConversionSnapshotBanner({ snapshot }: ConversionSnapsho
       ? `${snapshot.avgSalesCycleDays.toLocaleString("en-GB", {
           minimumFractionDigits: 0,
           maximumFractionDigits: 1,
-        })} dias`
+        })} days`
       : "—";
 
   return (
@@ -28,48 +28,48 @@ export default function ConversionSnapshotBanner({ snapshot }: ConversionSnapsho
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-2">
-            Taxa de conversão (snapshot)
+            Conversion rate (snapshot)
           </p>
           <p className="text-3xl font-semibold tabular-nums text-slate-900">{rate}</p>
           <p className="text-xs text-slate-500 mt-2 leading-snug">
-            Ganhos ÷ <span className="font-medium text-slate-700">(Ganhos + Upside + Pipeline)</span>.
-            Deals em estágio <span className="font-medium">&quot;First Demo&quot;</span> estão{" "}
-            <span className="font-medium">excluídos</span>.
+            Closed won ÷ <span className="font-medium text-slate-700">(Closed won + Upside + Pipeline)</span>.
+            Deals in a stage containing <span className="font-medium">&quot;First Demo&quot;</span> are{" "}
+            <span className="font-medium">excluded</span>.
             {snapshot.ratePct != null ? (
               <span className="block mt-1 text-slate-600">
-                {snapshot.wonCount} ganhos / {snapshot.funnelCount} no funil incluídos.
+                {snapshot.wonCount} won / {snapshot.funnelCount} in funnel.
               </span>
             ) : (
-              <span className="block mt-1">Sem deals no funil (após filtros).</span>
+              <span className="block mt-1">No deals in funnel after filters.</span>
             )}
           </p>
         </div>
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-2">
-            Ciclo médio de vendas
+            Average sales cycle
           </p>
           <p className="text-3xl font-semibold tabular-nums text-slate-900">{cycle}</p>
           <p className="text-xs text-slate-500 mt-2 leading-snug">
-            Dias entre data de criação e data de fecho nos <span className="font-medium">Closed Won</span> já fora do
-            First Demo. Usa a coluna HubSpot &quot;Time Between Creation and Closed Date&quot; quando existe; caso
-            contrário calculemos pela diferença de datas.
+            Days from create date to close date on <span className="font-medium">Closed Won</span> deals (excluding
+            First Demo). Uses HubSpot column &quot;Time Between Creation and Closed Date&quot; when present; otherwise
+            we compute from dates.
             {snapshot.cycleSampleCount > 0 ? (
               <span className="block mt-1 text-slate-600">
-                Base: {snapshot.cycleSampleCount} deal(s) fechados ganhos.
+                Based on {snapshot.cycleSampleCount} closed-won deal(s).
               </span>
             ) : (
-              <span className="block mt-1 text-slate-600">Sem amostras de ganhos neste export.</span>
+              <span className="block mt-1 text-slate-600">No closed-won samples in this export.</span>
             )}
           </p>
         </div>
       </div>
       {snapshot.firstDemoExcludedDealCount > 0 ? (
         <p className="text-[11px] text-slate-400 mt-4 pt-3 border-t border-slate-100">
-          {snapshot.firstDemoExcludedDealCount} deal(s) omitidos pelo filtro First Demo neste snapshot.
+          {snapshot.firstDemoExcludedDealCount} deal(s) omitted by the First Demo stage filter in this snapshot.
         </p>
       ) : (
         <p className="text-[11px] text-slate-400 mt-4 pt-3 border-t border-slate-100">
-          Nenhum deal com texto &quot;First Demo&quot; no estágio neste export.
+          No deals with &quot;First Demo&quot; in stage text in this export.
         </p>
       )}
     </section>

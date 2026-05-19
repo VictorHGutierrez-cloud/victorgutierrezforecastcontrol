@@ -27,10 +27,10 @@ function DashboardBody({ pipelineData }: { pipelineData: PipelineData }) {
 
         {pipelineData.conversionSnapshot ? (
           <section className="space-y-3">
-            <h2 className="section-heading text-slate-600">Conversão e ciclo médio</h2>
+            <h2 className="section-heading text-slate-600">Conversion &amp; sales cycle</h2>
             <p className="text-sm text-slate-500">
-              Derivado do Excel exportado; deals em estágio com texto{' '}
-              <span className="font-medium">First Demo</span> ficam de fora.
+              From the exported spreadsheet; deals whose stage text includes{' '}
+              <span className="font-medium">First Demo</span> are excluded.
             </p>
             <ConversionSnapshotBanner snapshot={pipelineData.conversionSnapshot} />
           </section>

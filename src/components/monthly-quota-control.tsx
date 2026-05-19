@@ -6,6 +6,7 @@ import {
   quotaSliderBounds,
   useMonthlyQuota,
 } from "@/components/monthly-quota-context";
+import { formatEur } from "@/lib/utils";
 
 export default function MonthlyQuotaControl() {
   const { quotaEur, setQuotaEur, resetToExported, exportedTargetEur, hasQuotaOverrideVsExport } =
@@ -38,7 +39,7 @@ export default function MonthlyQuotaControl() {
           <p className="text-xs text-slate-500 mt-1">
             Value from spreadsheet export:&nbsp;
             <span className="font-semibold tabular-nums text-slate-700">
-              {exportedTargetEur.toLocaleString("de-DE", { maximumFractionDigits: 0 })} €
+              {formatEur(exportedTargetEur)}
             </span>
             {hasQuotaOverrideVsExport ? (
               <span className="ml-2 text-blue-700">(adjusted in browser)</span>
@@ -57,7 +58,7 @@ export default function MonthlyQuotaControl() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <label className="flex-1 flex flex-col gap-1">
           <span className="text-[11px] uppercase tracking-wide text-slate-500">
-            Range ({minEur.toLocaleString("de-DE")} – {maxEur.toLocaleString("de-DE")} €)
+            Range ({formatEur(minEur)} – {formatEur(maxEur)})
           </span>
           <input
             type="range"

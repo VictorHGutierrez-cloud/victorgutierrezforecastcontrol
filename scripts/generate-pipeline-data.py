@@ -664,8 +664,8 @@ def main() -> None:
         if top_priority.get("validTouchpoints") is not None:
             touch_bit = f", {top_priority['validTouchpoints']} valid touchpoint(s)"
         bullets.append(
-            f"Largest upside this month: «{top_priority['name']}» "
-            f"({top_priority['amount']:,.0f} € nominal, €{top_priority['weighted']:,.0f} weighted"
+            f"Largest upside this month: \"{top_priority['name']}\" "
+            f"(€{top_priority['amount']:,.0f} nominal, €{top_priority['weighted']:,.0f} weighted"
             f"{score_bit}{touch_bit})."
         )
     bullets.append(

@@ -6,7 +6,7 @@ interface ConversionSnapshotBannerProps {
   snapshot: ConversionSnapshot;
 }
 
-/** Conversion % and average closed-won cycle; excludes Deal Stage rows containing «First Demo» (computed in Python). */
+/** Conversion % and average closed-won cycle; excludes Deal Stage rows containing "First Demo" (computed in Python). */
 export default function ConversionSnapshotBanner({ snapshot }: ConversionSnapshotBannerProps) {
   const rate =
     snapshot.ratePct != null && snapshot.funnelCount > 0

@@ -1,48 +1,48 @@
 # ROW Pipeline Brief — Victor Gutierrez
 
-Landing para **brief semanal** com o manager: meta mensal em €, resumo executivo, saúde do pipeline (datas de criação e atividade), gráficos e lista de deals. O **forecast oficial continua no HubSpot** — esta página é o snapshot estável antes do 1:1.
+Landing page for your **weekly manager brief**: monthly quota in EUR, executive summary, pipeline health (create dates and activity), charts, and deal list. **Official forecast stays in HubSpot** — this page is the stable snapshot before your 1:1.
 
-**Site em produção:** https://victorhgutierrez-cloud.github.io/victorgutierrezforecastcontrol/
+**Live site:** https://victorhgutierrez-cloud.github.io/victorgutierrezforecastcontrol/
 
-## Fluxo recomendado (toque antes do 1:1)
+## Recommended workflow (refresh before 1:1)
 
-1. No HubSpot, exportar a vista **Forecast Control** como `.xlsx`.
-2. Guardar na raiz do repo como **`novoexport.xlsx`** (substitui o ficheiro anterior), ou passar outro caminho: `npm run generate-data -- /caminho/para/export.xlsx`.
-3. Correr `npm run generate-data` (regenera `public/data/pipeline.json` incluindo textos para o manager).
-4. `git add .`, commit, `git push` para `main` — o GitHub Actions republica em ~3–5 minutos.
-5. Enviar o link do Pages ao manager; durante a semana, alterações de forecast **só no HubSpot**.
+1. In HubSpot, export the **Forecast Control** view as `.xlsx`.
+2. Save it in the repo root as **`novoexport.xlsx`** (replaces the previous file), or pass another path: `npm run generate-data -- /path/to/export.xlsx`.
+3. Run `npm run generate-data` (regenerates `public/data/pipeline.json`, including manager-facing text).
+4. `git add .`, commit, `git push` to `main` — GitHub Actions republishes in ~3–5 minutes.
+5. Send the Pages link to your manager; during the week, forecast changes **only in HubSpot**.
 
-## Configurar HubSpot na página
+## Configure HubSpot on the page
 
-Edite **[`public/data/dashboard-config.json`](public/data/dashboard-config.json)**:
+Edit **[`public/data/dashboard-config.json`](public/data/dashboard-config.json)**:
 
-| Campo | Para quê |
-|-------|----------|
-| `hubspotForecastUrl` | URL completa para abrir forecast / pipeline no HubSpot (botão no cabeçalho). |
-| `hubspotPortalId` | ID numérico do portal (opcional mas recomendado) — permite links directos aos deals nos blocos Focus e Needs attention (`/contacts/{id}/deal/{dealId}`). |
-| `hubspotDealBaseOrigin` | Origem HTTPS do portal (opcional): ex. `https://app-eu1.hubspot.com` se o Forecast abre na região EU; quando vazio usa `https://app.hubspot.com`. |
-| `monthlyQuotaEur` | Meta mensal em € gravada em `pipeline.json` ao gerar dados (por defeito 2000 no script se omitires ou for inválido). Na página podes usar o slider **Monthly quota** para cenários temporários (guardado no navegador). |
+| Field | Purpose |
+|-------|---------|
+| `hubspotForecastUrl` | Full URL to open forecast / pipeline in HubSpot (header button). |
+| `hubspotPortalId` | Numeric portal ID (optional but recommended) — enables direct deal links in Focus and Needs attention (`/contacts/{id}/deal/{dealId}`). |
+| `hubspotDealBaseOrigin` | Portal HTTPS origin (optional): e.g. `https://app-eu1.hubspot.com` if Forecast opens in the EU region; when empty, uses `https://app.hubspot.com`. |
+| `monthlyQuotaEur` | Monthly target in EUR written into `pipeline.json` when you generate data (default 2000 in the script if missing or invalid). On the page you can use the **Monthly quota** slider for temporary what-if scenarios (saved in the browser). |
 
-Depois de alterar este ficheiro, volte a correr **`npm run generate-data`** para fundir valores em `pipeline.json`.
+After changing this file, run **`npm run generate-data`** again to merge values into `pipeline.json`.
 
-## Gráficos (Subframe)
+## Charts (Subframe)
 
-- Componente base: [`src/components/ui/area-chart.tsx`](src/components/ui/area-chart.tsx) (wrapper sobre `@subframe/core`).
-- Secção **Pipeline reports** no dashboard: momentum, pipeline por mês de fecho, mix por categoria, países.
-- Dependência: `@subframe/core` (já no `package.json`).
+- Base component: [`src/components/ui/area-chart.tsx`](src/components/ui/area-chart.tsx) (wrapper over `@subframe/core`).
+- **Pipeline reports** section on the dashboard: momentum, pipeline by close month, mix by category, countries.
+- Dependency: `@subframe/core` (already in `package.json`).
 
-## Métricas (resumo)
+## Metrics (summary)
 
-- **Secured**: valor a 100 % dos Closed Won no mês (data de fecho).
-- **Weighted**: cada deal × peso por categoria (Upside ~55 %, Pipeline ~25 %, Not forecasted ~8 % — ver `scripts/generate-pipeline-data.py`).
-- **Gap to close**: meta − secured (o que ainda falta fechar em € reais — melhor para 1:1).
-- **Gap (forecast)**: meta − weighted (inclui previsão dos deals abertos com pesos HubSpot).
-- **Pipeline health**: pipe criado no mês, idade média, **deal score** e **valid touchpoints** (export HubSpot), lista “attention” com motivo em linguagem clara. Deals com **próxima actividade agendada** no futuro não entram como stale.
-- Campos extra no export (quando existirem): Last Contacted, Next activity date, Demo Status, Outbound Category, etc. — o script mapeia automaticamente.
-- Bullets da secção **Executive summary** são gerados em Python a partir do export (sem IA).
-- **Taxa de conversão (snapshot)** e **ciclo médio**: ver bloco «Conversão e ciclo médio» na página — calculados no `generate-pipeline-data.py`: ganhos ÷ (Ganhos+Upside+Pipeline) ignorando estágios cujo texto contém `First Demo`; ciclo = média dias criação→fecho nos ganhos (usa coluna HubSpot *Time Between Creation and Closed Date* se existir).
+- **Secured**: 100% of Closed Won value in the month (close date).
+- **Weighted**: each deal × category weight (Upside ~55%, Pipeline ~25%, Not forecasted ~8% — see `scripts/generate-pipeline-data.py`).
+- **Gap to close**: target − secured (cash still needed — best for 1:1).
+- **Gap (forecast)**: target − weighted (includes open-deal forecast with HubSpot weights).
+- **Pipeline health**: pipe created this month, average age, **deal score** and **valid touchpoints** (HubSpot export), “needs attention” list with plain-language reasons. Deals with a **future activity scheduled** are not flagged as stale.
+- Extra export fields (when present): Last Contacted, Next activity date, Demo Status, Outbound Category, etc. — the script maps them automatically.
+- **Executive summary** bullets are generated in Python from the export (no AI).
+- **Conversion rate (snapshot)** and **average sales cycle**: see the **Conversion & sales cycle** block on the page — computed in `generate-pipeline-data.py`: closed won ÷ (Closed won + Upside + Pipeline) excluding stages whose text contains `First Demo`; cycle = average days from create to close on wins (uses HubSpot column *Time Between Creation and Closed Date* when present).
 
-## Desenvolvimento local
+## Local development
 
 ```bash
 npm install
@@ -50,26 +50,26 @@ npm run generate-data
 npm run dev
 ```
 
-http://localhost:3000  
+http://localhost:3000
 
-**Meta mensal (quota):** `monthlyQuotaEur` em [`public/data/dashboard-config.json`](public/data/dashboard-config.json); o gerador [`scripts/generate-pipeline-data.py`](scripts/generate-pipeline-data.py) lê esse valor (fallback €2 000). O slider na página apenas simula outro quota no browser (localStorage); para um URL partilhado/refresco com o mesmo número, atualiza config + corre `npm run generate-data` + push.
+**Monthly quota:** `monthlyQuotaEur` in [`public/data/dashboard-config.json`](public/data/dashboard-config.json); the generator [`scripts/generate-pipeline-data.py`](scripts/generate-pipeline-data.py) reads that value (fallback €2,000). The page slider only simulates another quota in the browser (localStorage); for a shared URL or refresh with the same number, update config + run `npm run generate-data` + push.
 
 ## GitHub Pages
 
 1. Repo → **Settings → Pages** → **Source: GitHub Actions**.
-2. Push em `main` — workflow [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml).
+2. Push to `main` — workflow [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml).
 
-Variável opcional ao build estático: `NEXT_PUBLIC_SITE_URL` (URL pública impressa no rodapé).
+Optional build variable for static export: `NEXT_PUBLIC_SITE_URL` (public URL shown in the footer).
 
-## Estrutura útil
+## Useful paths
 
-| Caminho | Função |
-|---------|--------|
-| `novoexport.xlsx` | Export HubSpot (nome por defeito do gerador) |
-| `hubspot-crm-exports-*.xlsx` | Export anterior (referência) |
-| `public/data/dashboard-config.json` | URL HubSpot, portal EU, **monthlyQuotaEur** (meta gravada ao gerar dados) |
+| Path | Role |
+|------|------|
+| `novoexport.xlsx` | HubSpot export (default name for the generator) |
+| `hubspot-crm-exports-*.xlsx` | Previous export (reference) |
+| `public/data/dashboard-config.json` | HubSpot URL, EU portal, **monthlyQuotaEur** (target baked in when generating data) |
 | `scripts/generate-pipeline-data.py` | Excel → `pipeline.json` |
-| `public/data/pipeline.json` | Snapshot consumido pela app |
-| `src/components/` | Executive summary, goal, charts, pipeline health, tabela |
+| `public/data/pipeline.json` | Snapshot consumed by the app |
+| `src/components/` | Executive summary, goal, charts, pipeline health, table |
 
 **Stack:** Next.js (App Router), TypeScript, Tailwind CSS, Recharts, Framer Motion.

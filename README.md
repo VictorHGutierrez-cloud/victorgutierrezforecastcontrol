@@ -21,6 +21,7 @@ Edite **[`public/data/dashboard-config.json`](public/data/dashboard-config.json)
 | `hubspotForecastUrl` | URL completa para abrir forecast / pipeline no HubSpot (botão no cabeçalho). |
 | `hubspotPortalId` | ID numérico do portal (opcional mas recomendado) — permite links directos aos deals nos blocos Focus e Needs attention (`/contacts/{id}/deal/{dealId}`). |
 | `hubspotDealBaseOrigin` | Origem HTTPS do portal (opcional): ex. `https://app-eu1.hubspot.com` se o Forecast abre na região EU; quando vazio usa `https://app.hubspot.com`. |
+| `monthlyQuotaEur` | Meta mensal em € gravada em `pipeline.json` ao gerar dados (por defeito 2000 no script se omitires ou for inválido). Na página podes usar o slider **Monthly quota** para cenários temporários (guardado no navegador). |
 
 Depois de alterar este ficheiro, volte a correr **`npm run generate-data`** para fundir valores em `pipeline.json`.
 
@@ -41,7 +42,7 @@ npm run dev
 
 http://localhost:3000  
 
-Meta mensal €2 000 está em `MONTHLY_GOAL_EUR` em [`scripts/generate-pipeline-data.py`](scripts/generate-pipeline-data.py).
+**Meta mensal (quota):** `monthlyQuotaEur` em [`public/data/dashboard-config.json`](public/data/dashboard-config.json); o gerador [`scripts/generate-pipeline-data.py`](scripts/generate-pipeline-data.py) lê esse valor (fallback €2 000). O slider na página apenas simula outro quota no browser (localStorage); para um URL partilhado/refresco com o mesmo número, atualiza config + corre `npm run generate-data` + push.
 
 ## GitHub Pages
 
@@ -55,7 +56,7 @@ Variável opcional ao build estático: `NEXT_PUBLIC_SITE_URL` (URL pública impr
 | Caminho | Função |
 |---------|--------|
 | `hubspot-crm-exports-*.xlsx` | Export do HubSpot |
-| `public/data/dashboard-config.json` | URL HubSpot + portal ID |
+| `public/data/dashboard-config.json` | URL HubSpot, portal EU, **monthlyQuotaEur** (meta gravada ao gerar dados) |
 | `scripts/generate-pipeline-data.py` | Excel → `pipeline.json` |
 | `public/data/pipeline.json` | Snapshot consumido pela app |
 | `src/components/` | Executive summary, goal, charts, pipeline health, tabela |

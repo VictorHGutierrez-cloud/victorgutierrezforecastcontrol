@@ -128,7 +128,7 @@
     "2026-06"
   ],
   "goal": {
-    "targetEur": 2000,
+    "targetEur": 2000.0,
     "month": "2026-05",
     "monthLabel": "May 2026",
     "securedEur": 590.34,
@@ -144,35 +144,35 @@
         "week": "W1",
         "secured": 0.0,
         "weighted": 0.0,
-        "goal": 2000,
+        "goal": 2000.0,
         "trend": 275.59
       },
       {
         "week": "W2",
         "secured": 157.69,
         "weighted": 157.69,
-        "goal": 2000,
+        "goal": 2000.0,
         "trend": 551.18
       },
       {
         "week": "W3",
         "secured": 748.03,
         "weighted": 748.03,
-        "goal": 2000,
+        "goal": 2000.0,
         "trend": 826.77
       },
       {
         "week": "W4",
         "secured": 1338.37,
         "weighted": 1338.37,
-        "goal": 2000,
+        "goal": 2000.0,
         "trend": 1102.36
       },
       {
         "week": "W5",
         "secured": 1928.71,
         "weighted": 2763.99,
-        "goal": 2000,
+        "goal": 2000.0,
         "trend": 1220.47
       }
     ],

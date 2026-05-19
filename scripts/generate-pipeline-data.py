@@ -8,7 +8,7 @@ from pathlib import Path
 import pandas as pd
 
 
-MONTHLY_GOAL_EUR = 2000
+MONTHLY_GOAL_DEFAULT_EUR = 2000
 CATEGORY_WEIGHTS = {
     "Closed Won": 1.0,
     "Upside": 0.55,
@@ -39,6 +39,7 @@ def load_dashboard_config(root: Path) -> dict:
         "hubspotForecastUrl": "",
         "hubspotPortalId": "",
         "hubspotDealBaseOrigin": "",
+        "monthlyQuotaEur": None,
     }
     if not cfg_path.exists():
         return defaults
@@ -47,6 +48,20 @@ def load_dashboard_config(root: Path) -> dict:
         return merged
     except json.JSONDecodeError:
         return defaults
+
+
+def monthly_goal_from_config(cfg: dict) -> float:
+    """EUR monthly quota; synced with dashboard `monthlyQuotaEur`."""
+    raw = cfg.get("monthlyQuotaEur")
+    if raw is None or raw == "":
+        return float(MONTHLY_GOAL_DEFAULT_EUR)
+    try:
+        v = float(raw)
+        if v <= 0:
+            return float(MONTHLY_GOAL_DEFAULT_EUR)
+        return v
+    except (ValueError, TypeError):
+        return float(MONTHLY_GOAL_DEFAULT_EUR)
 
 
 def deal_is_stale(cat, age_days, days_since_activity, stage):
@@ -69,6 +84,7 @@ def main() -> None:
         xlsx = Path(sys.argv[1])
 
     dash_cfg = load_dashboard_config(root)
+    monthly_goal_eur = monthly_goal_from_config(dash_cfg)
 
     df = pd.read_excel(xlsx)
     df.columns = [str(c).strip() for c in df.columns]
@@ -161,17 +177,17 @@ def main() -> None:
             for _, row in month_deals.iterrows()
         )
     )
-    gap = max(0.0, MONTHLY_GOAL_EUR - weighted_month)
-    progress_pct = min(100.0, round((weighted_month / MONTHLY_GOAL_EUR) * 100, 1))
-    secured_pct = min(100.0, round((secured / MONTHLY_GOAL_EUR) * 100, 1))
+    gap = max(0.0, monthly_goal_eur - weighted_month)
+    progress_pct = min(100.0, round((weighted_month / monthly_goal_eur) * 100, 1))
+    secured_pct = min(100.0, round((secured / monthly_goal_eur) * 100, 1))
 
-    raw_chance = (weighted_month / MONTHLY_GOAL_EUR) * 72 + (secured / MONTHLY_GOAL_EUR) * 28
+    raw_chance = (weighted_month / monthly_goal_eur) * 72 + (secured / monthly_goal_eur) * 28
     win_chance = int(min(92, max(8, round(raw_chance))))
 
     days_in_month = (today + pd.offsets.MonthEnd(0)).day
     day_of_month = today.day
     run_rate = (secured / day_of_month) * days_in_month if day_of_month > 0 else 0
-    projected_month = round(min(run_rate + weighted_month - secured, MONTHLY_GOAL_EUR * 2), 0)
+    projected_month = round(min(run_rate + weighted_month - secured, monthly_goal_eur * 2), 0)
 
     month_start = pd.Timestamp(f"{month_key}-01")
     trend_points = []
@@ -199,7 +215,7 @@ def main() -> None:
                 "week": f"W{week}",
                 "secured": round(cumulative_secured, 2),
                 "weighted": round(cumulative_weighted, 2),
-                "goal": MONTHLY_GOAL_EUR,
+                "goal": monthly_goal_eur,
             }
         )
 
@@ -275,7 +291,7 @@ def main() -> None:
     # Executive bullets (template-based)
     top_priority = priority_deals[0] if priority_deals else None
     bullets = [
-        f"Monthly goal €{MONTHLY_GOAL_EUR:,.0f}: {progress_pct:.0f}% by weighted forecast — "
+        f"Monthly goal €{monthly_goal_eur:,.0f}: {progress_pct:.0f}% by weighted forecast — "
         f"€{secured:,.0f} secured, €{weighted_month:,.0f} weighted ({month_key}).",
         f"Estimated chance to reach goal this month: ~{win_chance}%. Gap to target: €{gap:,.0f}.",
     ]
@@ -342,7 +358,7 @@ def main() -> None:
         "chartSeries": chart,
         "chartMonths": months,
         "goal": {
-            "targetEur": MONTHLY_GOAL_EUR,
+            "targetEur": monthly_goal_eur,
             "month": month_key,
             "monthLabel": today.strftime("%B %Y"),
             "securedEur": round(secured, 2),

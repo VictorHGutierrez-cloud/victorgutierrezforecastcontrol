@@ -10,13 +10,7 @@ import PipelineHealthPanel from "@/components/pipeline-health";
 import PriorityDeals from "@/components/priority-deals";
 import type { PipelineData } from "@/lib/pipeline-types";
 
-function DashboardBody({
-  pipelineData,
-  siteUrl,
-}: {
-  pipelineData: PipelineData;
-  siteUrl: string;
-}) {
+function DashboardBody({ pipelineData }: { pipelineData: PipelineData }) {
   const { executiveBullets, effectiveGoal } = useMonthlyQuota();
 
   return (
@@ -60,53 +54,17 @@ function DashboardBody({
           <DealsTable deals={pipelineData.deals} meta={pipelineData.meta} />
         </section>
       </div>
-
-      <footer className="mt-16 px-4 pb-12 space-y-4 text-center border-t border-slate-200 pt-10 bg-white">
-        <p className="text-[11px] text-slate-500 uppercase tracking-widest">Update checklist</p>
-        <ol className="text-xs text-slate-600 space-y-1 max-w-xl mx-auto text-left list-decimal list-inside">
-          <li>Export Forecast Control from HubSpot (xlsx).</li>
-          <li>
-            Save as <code className="text-blue-700 bg-blue-50 px-1 rounded">novoexport.xlsx</code> in the
-            project folder (or pass another path), then run{" "}
-            <code className="text-blue-700 bg-blue-50 px-1 rounded">npm run generate-data</code>
-            .
-          </li>
-          <li>
-            <code className="text-blue-700 bg-blue-50 px-1 rounded">git add .</code>, commit, push — GitHub Actions
-            republishes the site (~3–5 min).
-          </li>
-        </ol>
-        <p className="text-xs text-slate-500 max-w-xl mx-auto">
-          Official forecast and deal edits remain in HubSpot. This dashboard is the weekly briefing link for 1:1s.
-          Use <strong className="font-medium">Monthly quota</strong> above for what-if simulations; regenerate data after
-          changing <code className="text-xs">monthlyQuotaEur</code> in{" "}
-          <code className="text-xs">dashboard-config.json</code> so the spreadsheet export aligns.
-        </p>
-        <a
-          href={siteUrl}
-          className="text-xs text-blue-700 hover:text-blue-900 break-all inline-block underline-offset-4 hover:underline"
-        >
-          {siteUrl}
-        </a>
-        <p className="text-[11px] text-slate-400">{pipelineData.meta.source}</p>
-      </footer>
     </>
   );
 }
 
-export default function ForecastDashboardShell({
-  pipelineData,
-  siteUrl,
-}: {
-  pipelineData: PipelineData;
-  siteUrl: string;
-}) {
+export default function ForecastDashboardShell({ pipelineData }: { pipelineData: PipelineData }) {
   return (
     <MonthlyQuotaProvider pipelineData={pipelineData}>
       <main className="min-h-screen bg-background text-foreground">
         <div className="relative z-10 max-w-7xl mx-auto pb-20">
           <LandingHero meta={pipelineData.meta} />
-          <DashboardBody pipelineData={pipelineData} siteUrl={siteUrl} />
+          <DashboardBody pipelineData={pipelineData} />
         </div>
       </main>
     </MonthlyQuotaProvider>

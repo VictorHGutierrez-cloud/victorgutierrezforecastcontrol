@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Activity, AlertTriangle, CalendarPlus, Target, TrendingDown } from "lucide-react";
+import { Activity, AlertTriangle, CalendarPlus, ExternalLink, Target, TrendingDown } from "lucide-react";
 import type { PipelineHealth, PipelineMeta } from "@/lib/pipeline-types";
 import { formatEur, hubspotDealUrl } from "@/lib/utils";
 
@@ -84,17 +84,18 @@ export default function PipelineHealthPanel({ health, meta }: PipelineHealthProp
             return (
               <li
                 key={d.id}
-                className="flex flex-wrap items-baseline justify-between gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm"
+                className="flex flex-wrap items-baseline justify-between gap-2 rounded-lg border border-amber-200 bg-amber-50/40 px-3 py-2 text-sm hover:bg-amber-50 transition-colors"
               >
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   {href ? (
                     <a
                       href={href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-slate-900 font-medium hover:text-blue-700 truncate block"
+                      className="text-slate-900 font-medium hover:text-blue-700 inline-flex items-center gap-1"
                     >
-                      {d.name}
+                      <span className="truncate">{d.name}</span>
+                      <ExternalLink className="w-3.5 h-3.5 shrink-0 opacity-60" aria-hidden />
                     </a>
                   ) : (
                     <span className="text-slate-900 font-medium truncate block">{d.name}</span>

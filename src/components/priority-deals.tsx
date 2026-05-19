@@ -28,23 +28,20 @@ export default function PriorityDeals({ goal, meta }: PriorityDealsProps) {
       <ul className="space-y-3 flex-1">
         {goal.priorityDeals.map((deal) => {
           const href = hubspotDealUrl(meta.hubspotPortalId, deal.id, meta.hubspotDealBaseOrigin);
-          return (
-            <li key={deal.id} className="rounded-lg bg-slate-50 border border-slate-200 p-3 space-y-2">
+          const cardClass = `rounded-lg border p-3 space-y-2 block transition-colors ${
+            deal.engagementRisk
+              ? "bg-amber-50/60 border-amber-200 hover:bg-amber-50 hover:border-amber-300"
+              : "bg-slate-50 border-slate-200 hover:bg-slate-100/80"
+          }`;
+
+          const cardBody = (
+            <>
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
-                  {href ? (
-                    <a
-                      href={href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm font-medium text-slate-900 hover:text-blue-700 inline-flex items-center gap-1"
-                    >
-                      {deal.name}
-                      <ExternalLink className="w-3.5 h-3.5 shrink-0 opacity-60" aria-hidden />
-                    </a>
-                  ) : (
-                    <p className="text-sm font-medium text-slate-900 truncate">{deal.name}</p>
-                  )}
+                  <p className="text-sm font-medium text-slate-900 inline-flex items-center gap-1">
+                    {deal.name}
+                    {href ? <ExternalLink className="w-3.5 h-3.5 shrink-0 opacity-60" aria-hidden /> : null}
+                  </p>
                   <div className="flex flex-wrap items-center gap-1.5 mt-1">
                     <span
                       className={`inline-block text-[10px] px-2 py-0.5 rounded-full border ${CAT_COLOR[deal.category] ?? CAT_COLOR["Not Forecasted"]}`}
@@ -79,6 +76,18 @@ export default function PriorityDeals({ goal, meta }: PriorityDealsProps) {
                   {deal.nextStep}
                 </p>
               ) : null}
+            </>
+          );
+
+          return (
+            <li key={deal.id}>
+              {href ? (
+                <a href={href} target="_blank" rel="noopener noreferrer" className={cardClass}>
+                  {cardBody}
+                </a>
+              ) : (
+                <div className={cardClass}>{cardBody}</div>
+              )}
             </li>
           );
         })}

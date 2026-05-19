@@ -57,7 +57,7 @@ function DashboardBody({
         </section>
 
         <section>
-          <DealsTable deals={pipelineData.deals} />
+          <DealsTable deals={pipelineData.deals} meta={pipelineData.meta} />
         </section>
       </div>
 

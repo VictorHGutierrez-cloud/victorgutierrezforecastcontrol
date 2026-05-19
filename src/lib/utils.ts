@@ -29,10 +29,15 @@ export function formatCompact(value: number): string {
   return formatCompactEur(value);
 }
 
-export function hubspotDealUrl(portalId: string | undefined, dealId: string): string | null {
+export function hubspotDealUrl(
+  portalId: string | undefined,
+  dealId: string,
+  baseOrigin?: string,
+): string | null {
   const p = (portalId ?? "").trim();
   if (!p) return null;
-  return `https://app.hubspot.com/contacts/${p}/deal/${dealId}`;
+  const origin = (baseOrigin ?? "").trim() || "https://app.hubspot.com";
+  return `${origin.replace(/\/$/, "")}/contacts/${p}/deal/${dealId}`;
 }
 
 export function formatDisplayDate(iso: string | undefined): string {

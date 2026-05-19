@@ -14,7 +14,7 @@ export default function LandingHero({ meta }: LandingHeroProps) {
   const hubHref = meta.hubspotForecastUrl?.trim();
 
   return (
-    <header className="w-full px-4 pt-10 pb-8 border-b border-white/10">
+    <header className="w-full px-4 pt-10 pb-8 border-b border-slate-200 bg-white">
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -25,10 +25,10 @@ export default function LandingHero({ meta }: LandingHeroProps) {
         </p>
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <motion.div>
-            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-white">
+            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900">
               {title} · {meta.owner}
             </h1>
-            <p className="mt-2 text-slate-400">{meta.role}</p>
+            <p className="mt-2 text-slate-600">{meta.role}</p>
           </motion.div>
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 lg:justify-end">
             <p className="text-sm text-slate-500 whitespace-nowrap tabular-nums">
@@ -40,8 +40,8 @@ export default function LandingHero({ meta }: LandingHeroProps) {
                 target="_blank"
                 rel="noopener noreferrer"
                 className={cn(
-                  "inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium",
-                  "bg-indigo-500 text-white hover:bg-indigo-400 transition-colors",
+                  "inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors",
+                  "bg-slate-900 text-white hover:bg-slate-800 shadow-sm border border-transparent",
                 )}
               >
                 Open Forecast in HubSpot

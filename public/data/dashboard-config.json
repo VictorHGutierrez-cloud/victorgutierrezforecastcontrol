@@ -1,5 +1,6 @@
 {
-  "hubspotForecastUrl": "https://app.hubspot.com/deals/",
-  "hubspotPortalId": "",
-  "_comment": "Set hubspotForecastUrl to your HubSpot Forecast or Pipeline view URL. Optionally set portalId so deal links resolve (e.g. 12345678)."
+  "hubspotForecastUrl": "https://app-eu1.hubspot.com/forecasting/4960096/owner/130065336?forecast_type=0&pipeline=11834984&time_period=THIS_MONTH&deal_stage_groupings=35070729&deal_stage_groupings=4977567965&deal_stage_groupings=35070730&deal_stage_groupings=5366023400&deal_stage_groupings=35070731&deal_stage_groupings=35118878&deal_stage_groupings=35118879&deal_stage_groupings=104503991&deal_stage_groupings=35118880&deal_stage_groupings=1008401982&forecast_category_groupings=CLOSED&forecast_category_groupings=Commit&forecast_category_groupings=Upside&forecast_category_groupings=Pipeline_new&deal_grouping_type=DEAL_STAGE",
+  "hubspotPortalId": "4960096",
+  "hubspotDealBaseOrigin": "https://app-eu1.hubspot.com",
+  "_comment": "hubspotForecastUrl: Forecast view EU. hubspotPortalId: Portal ID from URL path. hubspotDealBaseOrigin: same host as Forecast for deal deep-links (omit for default app.hubspot.com)."
 }

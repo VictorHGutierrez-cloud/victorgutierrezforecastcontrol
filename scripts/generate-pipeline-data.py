@@ -35,7 +35,11 @@ def cat_key(c: object) -> str:
 
 def load_dashboard_config(root: Path) -> dict:
     cfg_path = root / "public" / "data" / "dashboard-config.json"
-    defaults = {"hubspotForecastUrl": "", "hubspotPortalId": ""}
+    defaults = {
+        "hubspotForecastUrl": "",
+        "hubspotPortalId": "",
+        "hubspotDealBaseOrigin": "",
+    }
     if not cfg_path.exists():
         return defaults
     try:
@@ -308,6 +312,7 @@ def main() -> None:
             "briefTitle": "ROW Pipeline Brief",
             "hubspotForecastUrl": str(dash_cfg.get("hubspotForecastUrl") or ""),
             "hubspotPortalId": str(dash_cfg.get("hubspotPortalId") or ""),
+            "hubspotDealBaseOrigin": str(dash_cfg.get("hubspotDealBaseOrigin") or ""),
         },
         "summary": {
             "totalDeals": len(df),

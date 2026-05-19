@@ -20,6 +20,7 @@ Edite **[`public/data/dashboard-config.json`](public/data/dashboard-config.json)
 |-------|----------|
 | `hubspotForecastUrl` | URL completa para abrir forecast / pipeline no HubSpot (botão no cabeçalho). |
 | `hubspotPortalId` | ID numérico do portal (opcional mas recomendado) — permite links directos aos deals nos blocos Focus e Needs attention (`/contacts/{id}/deal/{dealId}`). |
+| `hubspotDealBaseOrigin` | Origem HTTPS do portal (opcional): ex. `https://app-eu1.hubspot.com` se o Forecast abre na região EU; quando vazio usa `https://app.hubspot.com`. |
 
 Depois de alterar este ficheiro, volte a correr **`npm run generate-data`** para fundir valores em `pipeline.json`.
 

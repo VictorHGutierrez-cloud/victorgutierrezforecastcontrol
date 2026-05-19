@@ -107,6 +107,8 @@ export interface PipelineMeta {
   briefTitle: string;
   hubspotForecastUrl: string;
   hubspotPortalId: string;
+  /** e.g. https://app-eu1.hubspot.com — omit or empty for global app.hubspot.com */
+  hubspotDealBaseOrigin?: string;
 }
 
 export interface PipelineData {

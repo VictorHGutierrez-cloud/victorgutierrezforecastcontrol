@@ -40,6 +40,7 @@ Depois de alterar este ficheiro, volte a correr **`npm run generate-data`** para
 - **Pipeline health**: pipe criado no mês, idade média, **deal score** e **valid touchpoints** (export HubSpot), lista “attention” com motivo em linguagem clara. Deals com **próxima actividade agendada** no futuro não entram como stale.
 - Campos extra no export (quando existirem): Last Contacted, Next activity date, Demo Status, Outbound Category, etc. — o script mapeia automaticamente.
 - Bullets da secção **Executive summary** são gerados em Python a partir do export (sem IA).
+- **Taxa de conversão (snapshot)** e **ciclo médio**: ver bloco «Conversão e ciclo médio» na página — calculados no `generate-pipeline-data.py`: ganhos ÷ (Ganhos+Upside+Pipeline) ignorando estágios cujo texto contém `First Demo`; ciclo = média dias criação→fecho nos ganhos (usa coluna HubSpot *Time Between Creation and Closed Date* se existir).
 
 ## Desenvolvimento local
 

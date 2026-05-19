@@ -217,6 +217,11 @@ def stale_reason(
     return " · ".join(parts) if parts else "needs follow-up"
 
 
+def is_first_demo_stage(stage: object) -> bool:
+    """Exclude pipeline rows whose HubSpot Deal Stage text includes First Demo (case-insensitive)."""
+    return "first demo" in safe_str(stage).lower()
+
+
 def parse_optional_columns(df: pd.DataFrame) -> pd.DataFrame:
     for hubspot_col in OPTIONAL_DATE_COLUMNS:
         if col_present(df, hubspot_col):
@@ -409,6 +414,39 @@ def main() -> None:
     pipeline = df[df["category_group"] == "Pipeline"]
     closed = df[df["category_group"] == "Closed Won"]
     not_fc = df[df["category_group"] == "Not Forecasted"]
+
+    fd_mask = df["Deal Stage"].map(is_first_demo_stage)
+    df_no_first_demo = df.loc[~fd_mask]
+    funnel_mask = df_no_first_demo["category_group"].isin(["Closed Won", "Upside", "Pipeline"])
+    funnel_df = df_no_first_demo.loc[funnel_mask]
+    won_df = funnel_df[funnel_df["category_group"] == "Closed Won"]
+    funnel_count = int(len(funnel_df))
+    won_count = int(len(won_df))
+    conversion_rate_pct = (
+        round(100.0 * won_count / funnel_count, 1) if funnel_count > 0 else None
+    )
+    hub_days_col_present = col_present(df, "Time Between Creation and Closed Date")
+    cycle_days: list[int] = []
+    for _, r in won_df.iterrows():
+        dh: Optional[int] = None
+        if hub_days_col_present:
+            dh = safe_int(r.get("Time Between Creation and Closed Date"))
+        if dh is not None and dh >= 0:
+            cycle_days.append(int(dh))
+        elif pd.notna(r["Create Date"]) and pd.notna(r["Close Date"]):
+            delta = pd.Timestamp(r["Close Date"]).normalize() - pd.Timestamp(r["Create Date"]).normalize()
+            cycle_days.append(max(0, int(delta.days)))
+    avg_cycle_days = round(float(sum(cycle_days)) / len(cycle_days), 1) if cycle_days else None
+    conversion_snapshot = {
+        "ratePct": conversion_rate_pct,
+        "wonCount": won_count,
+        "funnelCount": funnel_count,
+        "firstDemoExcludedDealCount": int(fd_mask.sum()),
+        "avgSalesCycleDays": avg_cycle_days,
+        "cycleSampleCount": int(len(cycle_days)),
+        "formulaEn": "won ÷ (Won + Upside + Pipeline) excluding Deal Stage containing First Demo; "
+        "cycle = avg days creation→close among those wins.",
+    }
 
     month_deals = df[df["close_month"] == month_key].copy()
 
@@ -643,6 +681,17 @@ def main() -> None:
         f"Deals flagged for attention (stale / early-stage + quiet, excluding scheduled follow-ups): "
         f"{stale_n}. Forecast detail and edits: HubSpot."
     )
+    if conversion_snapshot["ratePct"] is not None:
+        cyl = (
+            f"{conversion_snapshot['avgSalesCycleDays']:.1f}"
+            if conversion_snapshot["avgSalesCycleDays"] is not None
+            else "—"
+        )
+        bullets.append(
+            f"Conversão snapshot (sem First Demo): {conversion_snapshot['ratePct']:.1f}% "
+            f"({conversion_snapshot['wonCount']}/{conversion_snapshot['funnelCount']} Won+Upside+Pipeline). "
+            f"Ciclo médio (ganhos fechados): {cyl} dias em {conversion_snapshot['cycleSampleCount']} deal(s)."
+        )
     bullets.extend(improvement_bullets[:3])
 
     payload = {
@@ -693,6 +742,7 @@ def main() -> None:
         "executiveBullets": bullets,
         "chartSeries": chart,
         "chartMonths": months,
+        "conversionSnapshot": conversion_snapshot,
         "goal": {
             "targetEur": monthly_goal_eur,
             "month": month_key,

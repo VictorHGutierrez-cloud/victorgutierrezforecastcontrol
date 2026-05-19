@@ -160,6 +160,17 @@ export interface ColumnReport {
   fillRatesPct: Record<string, number>;
 }
 
+/** Funnel conversion + closed-won velocity (see generator; excludes First Demo stage). */
+export interface ConversionSnapshot {
+  ratePct: number | null;
+  wonCount: number;
+  funnelCount: number;
+  firstDemoExcludedDealCount: number;
+  avgSalesCycleDays: number | null;
+  cycleSampleCount: number;
+  formulaEn: string;
+}
+
 export interface PipelineData {
   meta: PipelineMeta;
   summary: PipelineSummary;
@@ -170,4 +181,5 @@ export interface PipelineData {
   goal: MonthlyGoal;
   deals: PipelineDeal[];
   columnReport?: ColumnReport;
+  conversionSnapshot?: ConversionSnapshot;
 }

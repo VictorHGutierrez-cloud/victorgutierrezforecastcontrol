@@ -90,6 +90,7 @@
     "Pipe created (by create date) in May: \u20ac2,581 (4 deals).",
     "Open pipeline average deal score: 21.6 (HubSpot 0\u2013100; higher = healthier engagement signals).",
     "Deals flagged for attention (stale / early-stage + quiet, excluding scheduled follow-ups): 2. Forecast detail and edits: HubSpot.",
+    "Convers\u00e3o snapshot (sem First Demo): 14.3% (2/14 Won+Upside+Pipeline). Ciclo m\u00e9dio (ganhos fechados): 50.5 dias em 2 deal(s).",
     "17 open deal(s) show engagement risk (\u22641 valid touchpoint, 14+ days since last touch, or score under 40).",
     "17 open deal(s) have HubSpot deal score below 40 \u2014 revisit qualification and next steps.",
     "Average valid touchpoints on open deals: 3.9 (aim for steady outbound + discovery touches on upside deals)."
@@ -152,6 +153,15 @@
     "2026-05",
     "2026-06"
   ],
+  "conversionSnapshot": {
+    "ratePct": 14.3,
+    "wonCount": 2,
+    "funnelCount": 14,
+    "firstDemoExcludedDealCount": 0,
+    "avgSalesCycleDays": 50.5,
+    "cycleSampleCount": 2,
+    "formulaEn": "won \u00f7 (Won + Upside + Pipeline) excluding Deal Stage containing First Demo; cycle = avg days creation\u2192close among those wins."
+  },
   "goal": {
     "targetEur": 2000.0,
     "month": "2026-05",

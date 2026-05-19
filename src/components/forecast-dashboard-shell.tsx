@@ -1,6 +1,7 @@
 "use client";
 
 import BriefBentoSection from "@/components/brief-bento-section";
+import ConversionSnapshotBanner from "@/components/conversion-snapshot";
 import DealsTable from "@/components/deals-table";
 import GoalTracker from "@/components/goal-tracker";
 import LandingHero from "@/components/landing-hero";
@@ -23,6 +24,17 @@ function DashboardBody({ pipelineData }: { pipelineData: PipelineData }) {
           goal={effectiveGoal}
           pipelineHealth={pipelineData.pipelineHealth}
         />
+
+        {pipelineData.conversionSnapshot ? (
+          <section className="space-y-3">
+            <h2 className="section-heading text-slate-600">Conversão e ciclo médio</h2>
+            <p className="text-sm text-slate-500">
+              Derivado do Excel exportado; deals em estágio com texto{' '}
+              <span className="font-medium">First Demo</span> ficam de fora.
+            </p>
+            <ConversionSnapshotBanner snapshot={pipelineData.conversionSnapshot} />
+          </section>
+        ) : null}
 
         <section className="space-y-3">
           <h2 className="section-heading text-slate-600">Monthly goal &amp; forecast</h2>

@@ -88,6 +88,79 @@
     "2026-05",
     "2026-06"
   ],
+  "goal": {
+    "targetEur": 2000,
+    "month": "2026-05",
+    "monthLabel": "May 2026",
+    "securedEur": 590.34,
+    "weightedEur": 1425.62,
+    "gapEur": 574.38,
+    "progressPct": 71.3,
+    "securedPct": 29.5,
+    "winChancePct": 60,
+    "projectedEur": 1798.0,
+    "daysLeft": 12,
+    "trend": [
+      {
+        "week": "W1",
+        "secured": 0.0,
+        "weighted": 0.0,
+        "goal": 2000,
+        "trend": 275.59
+      },
+      {
+        "week": "W2",
+        "secured": 157.69,
+        "weighted": 157.69,
+        "goal": 2000,
+        "trend": 551.18
+      },
+      {
+        "week": "W3",
+        "secured": 748.03,
+        "weighted": 748.03,
+        "goal": 2000,
+        "trend": 826.77
+      },
+      {
+        "week": "W4",
+        "secured": 1338.37,
+        "weighted": 1338.37,
+        "goal": 2000,
+        "trend": 1102.36
+      },
+      {
+        "week": "W5",
+        "secured": 1928.71,
+        "weighted": 2763.99,
+        "goal": 2000,
+        "trend": 1220.47
+      }
+    ],
+    "priorityDeals": [
+      {
+        "name": "Glam AI - Factorial IT",
+        "amount": 650.0,
+        "category": "Upside",
+        "weighted": 357.5,
+        "closeDate": "2026-05-31"
+      },
+      {
+        "name": "AZTECH - No Partner",
+        "amount": 638.0,
+        "category": "Upside",
+        "weighted": 350.9,
+        "closeDate": "2026-05-31"
+      },
+      {
+        "name": "The Righteous Foundation | Organic ",
+        "amount": 230.70000000000002,
+        "category": "Upside",
+        "weighted": 126.89,
+        "closeDate": "2026-05-31"
+      }
+    ]
+  },
   "deals": [
     {
       "id": "466064276668",

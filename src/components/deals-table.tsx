@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import type { PipelineDeal } from "@/lib/pipeline-types";
-import { formatCurrency } from "@/lib/utils";
+import { formatEur } from "@/lib/utils";
 
 const CATEGORY_STYLES: Record<string, string> = {
   Upside: "bg-indigo-500/20 text-indigo-300 border-indigo-500/30",
@@ -21,14 +21,14 @@ export default function DealsTable({ deals }: DealsTableProps) {
       initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3, duration: 0.5 }}
-      className="w-full max-w-6xl mx-auto px-4 pb-16"
+      className="rounded-2xl border border-white/10 bg-slate-900/60 p-6 backdrop-blur-xl"
     >
       <h2 className="text-2xl font-bold text-white mb-2">Deal intelligence</h2>
       <p className="text-slate-400 text-sm mb-6">
         Top opportunities from your HubSpot Forecast Control export, sorted by amount.
       </p>
 
-      <div className="overflow-x-auto rounded-2xl border border-slate-700/80 bg-slate-900/40 backdrop-blur">
+      <div className="overflow-x-auto rounded-xl border border-white/8">
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-slate-700 text-slate-400 uppercase text-xs tracking-wider">
@@ -53,7 +53,7 @@ export default function DealsTable({ deals }: DealsTableProps) {
                   )}
                 </td>
                 <td className="p-4 font-mono text-indigo-300 whitespace-nowrap">
-                  {formatCurrency(deal.amount)}
+                  {formatEur(deal.amount)}
                 </td>
                 <td className="p-4 hidden md:table-cell">
                   <span

@@ -39,6 +39,38 @@ export interface PipelineSummary {
   countries: string[];
 }
 
+export interface GoalTrendPoint {
+  week: string;
+  secured: number;
+  weighted: number;
+  goal: number;
+  trend: number;
+}
+
+export interface PriorityDeal {
+  name: string;
+  amount: number;
+  category: string;
+  weighted: number;
+  closeDate: string | null;
+}
+
+export interface MonthlyGoal {
+  targetEur: number;
+  month: string;
+  monthLabel: string;
+  securedEur: number;
+  weightedEur: number;
+  gapEur: number;
+  progressPct: number;
+  securedPct: number;
+  winChancePct: number;
+  projectedEur: number;
+  daysLeft: number;
+  trend: GoalTrendPoint[];
+  priorityDeals: PriorityDeal[];
+}
+
 export interface PipelineMeta {
   owner: string;
   role: string;
@@ -52,5 +84,6 @@ export interface PipelineData {
   summary: PipelineSummary;
   chartSeries: ChartSeries[];
   chartMonths: string[];
+  goal: MonthlyGoal;
   deals: PipelineDeal[];
 }

@@ -7,9 +7,11 @@ import type { GoalTrendPoint, MonthlyGoal } from "@/lib/pipeline-types";
 
 const MIN_DISPLAY_TARGET_EUR = 1;
 
-/** Last day-of-month — same semantics as pandas MonthEnd normalize for current month. */
-function daysInCalendarMonth(reference: Date): number {
-  return new Date(reference.getFullYear(), reference.getMonth() + 1, 0).getDate();
+function daysInCalendarQuarter(reference: Date): number {
+  const q = Math.floor(reference.getMonth() / 3);
+  const start = new Date(reference.getFullYear(), q * 3, 1);
+  const end = new Date(reference.getFullYear(), q * 3 + 3, 0);
+  return Math.round((end.getTime() - start.getTime()) / 86_400_000) + 1;
 }
 
 function deriveTrendWithUpdatedGoal(points: GoalTrendPoint[], goalLine: number): GoalTrendPoint[] {
@@ -17,69 +19,72 @@ function deriveTrendWithUpdatedGoal(points: GoalTrendPoint[], goalLine: number):
 }
 
 /**
- * Recompute KPIs that scale with quota (target Eur) using current deal aggregates from pipeline.json.
- *
- * Mirrors lines ~164–174 and trend `goal` field in Python.
+ * Recompute KPIs that scale with quarterly quota using aggregates from pipeline.json.
  */
 export function deriveMonthlyGoalFromTarget(baseGoal: MonthlyGoal, targetEur: number, now: Date): MonthlyGoal {
   const tgt = Number.isFinite(targetEur) && targetEur > 0 ? targetEur : MIN_DISPLAY_TARGET_EUR;
-  const weightedMonth = baseGoal.weightedEur;
+  const weighted = baseGoal.weightedEur;
   const secured = baseGoal.securedEur;
 
   const gapEur = Math.max(0, tgt - secured);
-  const gapWeightedEur = Math.max(0, tgt - weightedMonth);
-  const progressPct = Math.min(100, Math.round((weightedMonth / tgt) * 1000) / 10);
+  const gapWeightedEur = Math.max(0, tgt - weighted);
+  const progressPct = Math.min(100, Math.round((weighted / tgt) * 1000) / 10);
   const securedPct = Math.min(100, Math.round((secured / tgt) * 1000) / 10);
-  const rawChance = (weightedMonth / tgt) * 72 + (secured / tgt) * 28;
+  const rawChance = (weighted / tgt) * 72 + (secured / tgt) * 28;
   const winChancePct = Math.min(92, Math.max(8, Math.round(rawChance)));
 
-  const daysInMonth = daysInCalendarMonth(now);
-  const dayOfMonth = now.getDate();
-  const runRate = dayOfMonth > 0 ? (secured / dayOfMonth) * daysInMonth : 0;
-  const projectedMonth = Math.round(Math.min(runRate + weightedMonth - secured, tgt * 2));
+  const daysInQuarter = daysInCalendarQuarter(now);
+  const qStartMonth = Math.floor(now.getMonth() / 3) * 3;
+  const qStart = new Date(now.getFullYear(), qStartMonth, 1);
+  const daysElapsed = Math.max(1, Math.floor((now.getTime() - qStart.getTime()) / 86_400_000) + 1);
+  const runRate = daysElapsed > 0 ? (secured / daysElapsed) * daysInQuarter : 0;
+  const projectedEur = Math.round(Math.min(runRate + weighted - secured, tgt * 2));
 
   const trend = deriveTrendWithUpdatedGoal(baseGoal.trend, tgt);
+  const monthlyTargetEur = Math.round(tgt / 3);
 
   return {
     ...baseGoal,
     targetEur: tgt,
+    monthlyTargetEur,
     gapEur,
-    gapWeightedEur: gapWeightedEur,
+    gapWeightedEur,
     progressPct,
     securedPct,
     winChancePct,
-    projectedEur: projectedMonth,
+    projectedEur,
     trend,
   };
 }
 
-/** Format like Python `:,` for decimals (rounded to int parts in bullets). */
 function fmtIntEUR(n: number): string {
   return Math.round(n).toLocaleString("en-US", { maximumFractionDigits: 0 });
 }
 
-/** First two bullets as in Python `generate-pipeline-data.py` ~277–281. */
 export function buildExecutiveBulletsOpeningTwoLines(args: {
-  monthlyGoalEur: number;
+  quarterlyGoalEur: number;
   progressPct: number;
   securedEur: number;
   weightedMonthEur: number;
   monthKey: string;
+  quarterLabel?: string;
   gapEur: number;
   gapWeightedEur: number;
   winChancePct: number;
 }): [string, string] {
-  const quota = fmtIntEUR(args.monthlyGoalEur);
+  const quarterly = fmtIntEUR(args.quarterlyGoalEur);
+  const monthly = fmtIntEUR(args.quarterlyGoalEur / 3);
   const pct = Math.round(args.progressPct);
   const secured = fmtIntEUR(args.securedEur);
   const weighted = fmtIntEUR(args.weightedMonthEur);
   const gapSecured = fmtIntEUR(args.gapEur);
   const gapWeighted = fmtIntEUR(args.gapWeightedEur);
   const wc = Math.round(args.winChancePct);
+  const period = args.quarterLabel ?? args.monthKey;
 
   return [
-    `Monthly goal €${quota}: ${pct}% by weighted forecast — €${secured} secured, €${weighted} weighted (${args.monthKey}).`,
-    `Estimated chance to reach goal this month: ~${wc}%. Gap to close (secured): €${gapSecured} · Gap with forecast: €${gapWeighted}.`,
+    `${period} goal €${quarterly} (€${monthly}/mo): ${pct}% by weighted forecast — €${secured} secured, €${weighted} weighted.`,
+    `Estimated chance to reach ${period} goal: ~${wc}%. Gap to close (secured): €${gapSecured} · Gap with forecast: €${gapWeighted}.`,
   ];
 }
 

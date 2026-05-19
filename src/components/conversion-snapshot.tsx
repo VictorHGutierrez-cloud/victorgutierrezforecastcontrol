@@ -25,7 +25,7 @@ export default function ConversionSnapshotBanner({ snapshot }: ConversionSnapsho
       className="border border-slate-200 rounded-xl bg-white shadow-sm px-4 py-4 sm:px-6"
       aria-label="Conversion and sales cycle"
     >
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-2">
             Conversion rate (snapshot)
@@ -62,6 +62,26 @@ export default function ConversionSnapshotBanner({ snapshot }: ConversionSnapsho
             )}
           </p>
         </div>
+        {snapshot.winLossPct != null ? (
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-2">
+              Quarter win rate (closed)
+            </p>
+            <p className="text-3xl font-semibold tabular-nums text-slate-900">
+              {snapshot.winLossPct.toLocaleString("en-GB", { maximumFractionDigits: 1 })}%
+            </p>
+            <p className="text-xs text-slate-500 mt-2 leading-snug">
+              Closed won ÷ (closed won + closed lost) in the current quarter. Losses dated by{" "}
+              <span className="font-medium">Closed lost stage date</span>.
+              <span className="block mt-1 text-slate-600">
+                {snapshot.quarterWonCount ?? 0} won · {snapshot.quarterLostCount ?? 0} lost
+                {(snapshot.quarterLostEur ?? 0) > 0
+                  ? ` · ${snapshot.quarterLostEur!.toLocaleString("en-GB", { style: "currency", currency: "EUR", maximumFractionDigits: 0 })} lost`
+                  : ""}
+              </span>
+            </p>
+          </div>
+        ) : null}
       </div>
       {snapshot.firstDemoExcludedDealCount > 0 ? (
         <p className="text-[11px] text-slate-400 mt-4 pt-3 border-t border-slate-100">

@@ -32,14 +32,18 @@ export default function MonthlyQuotaControl() {
     <div className="rounded-lg border border-slate-200 bg-slate-50/80 px-4 py-3 space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-sm font-medium text-slate-900">Monthly quota</p>
+          <p className="text-sm font-medium text-slate-900">Quarterly quota</p>
           <p className="text-xs text-slate-500 mt-0.5">
-            Adjust the target for what-if scenarios · KPIs and executive bullets update instantly.
+            Full-quarter target (3× monthly config) · KPIs and executive bullets update instantly.
           </p>
           <p className="text-xs text-slate-500 mt-1">
-            Value from spreadsheet export:&nbsp;
+            From export:&nbsp;
             <span className="font-semibold tabular-nums text-slate-700">
               {formatEur(exportedTargetEur)}
+            </span>
+            <span className="text-slate-400">
+              {" "}
+              (≈ {formatEur(Math.round(exportedTargetEur / 3))}/mo)
             </span>
             {hasQuotaOverrideVsExport ? (
               <span className="ml-2 text-blue-700">(adjusted in browser)</span>
@@ -90,7 +94,7 @@ export default function MonthlyQuotaControl() {
               }
             }}
             className="tabular-nums w-full rounded-md border border-slate-300 px-2 py-1.5 text-sm text-slate-900 bg-white"
-            aria-label="Monthly quota in euros"
+            aria-label="Quarterly quota in euros"
           />
         </label>
       </div>

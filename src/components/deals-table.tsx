@@ -10,6 +10,7 @@ const CATEGORY_STYLES: Record<string, string> = {
   Upside: "bg-blue-50 text-blue-800 border-blue-100",
   Pipeline: "bg-violet-50 text-violet-800 border-violet-100",
   "Closed Won": "bg-teal-50 text-teal-800 border-teal-100",
+  "Closed Lost": "bg-rose-50 text-rose-800 border-rose-100",
   "Not Forecasted": "bg-slate-100 text-slate-700 border-slate-200",
 };
 
@@ -22,6 +23,7 @@ type SortKey =
   | "validTouchpoints"
   | "ageDays"
   | "closeDate"
+  | "closeLostStageDate"
   | "country";
 
 type SortDir = "asc" | "desc";
@@ -35,6 +37,11 @@ const SORT_COLUMNS: { key: SortKey; label: string; className?: string }[] = [
   { key: "validTouchpoints", label: "Touches", className: "p-3 font-medium tabular-nums hidden lg:table-cell" },
   { key: "ageDays", label: "Age", className: "p-3 font-medium tabular-nums hidden xl:table-cell" },
   { key: "closeDate", label: "Close", className: "p-3 font-medium hidden 2xl:table-cell" },
+  {
+    key: "closeLostStageDate",
+    label: "Lost date",
+    className: "p-3 font-medium hidden 2xl:table-cell",
+  },
   { key: "country", label: "Country", className: "py-3 pl-3 pr-4 font-medium hidden md:table-cell" },
 ];
 
@@ -88,6 +95,9 @@ function compareDeals(a: PipelineDeal, b: PipelineDeal, key: SortKey, dir: SortD
       break;
     case "closeDate":
       cmp = compareNullableDate(a.closeDate, b.closeDate, dir);
+      break;
+    case "closeLostStageDate":
+      cmp = compareNullableDate(a.closeLostStageDate, b.closeLostStageDate, dir);
       break;
     case "country":
       cmp = a.country.localeCompare(b.country, undefined, { sensitivity: "base" });
@@ -280,6 +290,9 @@ export default function DealsTable({ deals, meta }: DealsTableProps) {
                   </td>
                   <td className="p-3 text-slate-600 hidden 2xl:table-cell whitespace-nowrap tabular-nums">
                     {formatDisplayDate(deal.closeDate ?? undefined)}
+                  </td>
+                  <td className="p-3 text-slate-600 hidden 2xl:table-cell whitespace-nowrap tabular-nums">
+                    {formatDisplayDate(deal.closeLostStageDate ?? undefined)}
                   </td>
                   <td className="py-3 pl-3 pr-4 text-slate-600 hidden md:table-cell">{deal.country}</td>
                 </tr>

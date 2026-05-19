@@ -92,7 +92,7 @@ export function MonthlyQuotaProvider({ children, pipelineData }: ProviderProps) 
               ? Number(String(mq).replace(/\s+/g, ""))
               : NaN;
         if (Number.isFinite(n) && n > 0) {
-          configQuota = quotaClamp(n, exportedTargetEur);
+          configQuota = quotaClamp(n * 3, exportedTargetEur);
         }
       } catch {
         /**/
@@ -164,11 +164,12 @@ export function MonthlyQuotaProvider({ children, pipelineData }: ProviderProps) 
     }
 
     const pair = buildExecutiveBulletsOpeningTwoLines({
-      monthlyGoalEur: quotaEur,
+      quarterlyGoalEur: quotaEur,
       progressPct: effectiveGoal.progressPct,
       securedEur: effectiveGoal.securedEur,
       weightedMonthEur: effectiveGoal.weightedEur,
       monthKey: effectiveGoal.month,
+      quarterLabel: effectiveGoal.quarterLabel ?? effectiveGoal.monthLabel,
       gapEur: effectiveGoal.gapEur,
       gapWeightedEur: effectiveGoal.gapWeightedEur,
       winChancePct: effectiveGoal.winChancePct,

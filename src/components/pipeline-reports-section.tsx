@@ -10,7 +10,7 @@ import {
   buildCategoryTotalsChart,
   buildCloseMonthCategoryChart,
   buildCountryOpenPipelineChart,
-  buildCurrentMonthCloseChart,
+  buildCurrentQuarterCloseChart,
 } from "@/lib/chart-report-data";
 import { payloadToBarItems } from "@/lib/chart-payload";
 import type { MonthlyGoal } from "@/lib/pipeline-types";
@@ -68,11 +68,12 @@ export default function PipelineReportsSection({ pipelineData, goal }: PipelineR
   const byCloseMonth = buildCloseMonthCategoryChart(pipelineData.chartSeries, pipelineData.chartMonths);
   const categoryTotals = buildCategoryTotalsChart(pipelineData.summary);
   const byCountry = buildCountryOpenPipelineChart(pipelineData.deals);
-  const thisMonthClose = buildCurrentMonthCloseChart(pipelineData.deals, goal.month);
+  const quarterKey = goal.quarter ?? goal.month;
+  const thisQuarterClose = buildCurrentQuarterCloseChart(pipelineData.deals, quarterKey);
 
   const categoryBars = payloadToBarItems(categoryTotals);
   const countryBars = payloadToBarItems(byCountry);
-  const thisMonthBars = payloadToBarItems(thisMonthClose);
+  const thisQuarterBars = payloadToBarItems(thisQuarterClose);
 
   return (
     <section className="space-y-4">
@@ -103,13 +104,13 @@ export default function PipelineReportsSection({ pipelineData, goal }: PipelineR
         </ReportChartCard>
 
         <ReportChartCard
-          title={`Closing ${goal.monthLabel}`}
-          description="Deals with close date this month — nominal € by HubSpot forecast category."
+          title={`Closing ${goal.quarterLabel ?? goal.monthLabel}`}
+          description="Deals with close date this quarter — nominal € by HubSpot forecast category (includes Closed Lost)."
         >
-          {thisMonthBars.length > 0 ? (
-            <HorizontalPipelineBarChart items={thisMonthBars} colors={REPORT_CHART_COLORS} />
+          {thisQuarterBars.length > 0 ? (
+            <HorizontalPipelineBarChart items={thisQuarterBars} colors={REPORT_CHART_COLORS} />
           ) : (
-            <StackedCategoryAreaChart payload={thisMonthClose} colors={REPORT_CHART_COLORS} />
+            <StackedCategoryAreaChart payload={thisQuarterClose} colors={REPORT_CHART_COLORS} />
           )}
         </ReportChartCard>
 

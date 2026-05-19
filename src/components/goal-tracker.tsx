@@ -53,18 +53,18 @@ export default function GoalTracker({ goal }: GoalTrackerProps) {
             <span className="text-4xl font-bold text-slate-900 tabular-nums">
               {goal.progressPct}%
             </span>
-            <span className="text-xs text-slate-500 mt-1">of monthly goal</span>
+            <span className="text-xs text-slate-500 mt-1">of quarterly goal</span>
           </div>
         </div>
 
         <div className="flex-1 w-full space-y-5">
           <div>
             <p className="text-xs font-semibold uppercase tracking-widest text-slate-600 mb-1">
-              {goal.monthLabel} target
+              {goal.quarterLabel ?? goal.monthLabel} target
             </p>
             <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 flex items-center gap-2">
               <Target className="w-7 h-7 text-slate-700" aria-hidden />
-              {formatEur(goal.targetEur)} goal
+              {formatEur(goal.targetEur)} quarter
             </h2>
           </div>
 
@@ -76,7 +76,7 @@ export default function GoalTracker({ goal }: GoalTrackerProps) {
                   label: "Secured",
                   value: formatEur(goal.securedEur),
                   sub: "Closed won",
-                  tip: "100% of Closed Won deal value in this calendar month (close date).",
+                  tip: "100% of Closed Won deal value in this quarter (close date).",
                 },
                 {
                   icon: TrendingUp,
@@ -87,23 +87,30 @@ export default function GoalTracker({ goal }: GoalTrackerProps) {
                 },
                 {
                   icon: Target,
+                  label: "Closed lost",
+                  value: formatEur(goal.lostEur ?? 0),
+                  sub: "This quarter",
+                  tip: "Sum of Closed Lost deals where Closed lost stage date falls in this quarter.",
+                },
+                {
+                  icon: Target,
                   label: "Gap to close",
                   value: formatEur(goal.gapEur),
                   sub: "Still to win",
-                  tip: "Monthly target minus secured (Closed Won) this month — best for 1:1 cash view.",
+                  tip: "Quarterly target minus secured (Closed Won) this quarter — best for 1:1 cash view.",
                 },
                 {
                   icon: Target,
                   label: "Gap (forecast)",
                   value: formatEur(goal.gapWeightedEur),
                   sub: "Weighted",
-                  tip: "Monthly target minus weighted forecast (includes open deals by HubSpot category weights).",
+                  tip: "Quarterly target minus weighted forecast (includes open deals by HubSpot category weights).",
                 },
                 {
                   icon: Calendar,
                   label: "Days left",
                   value: String(goal.daysLeft),
-                  sub: "In month",
+                  sub: "In quarter",
                   tip: "",
                 },
               ] as const
@@ -135,7 +142,10 @@ export default function GoalTracker({ goal }: GoalTrackerProps) {
 
           <div className="rounded-lg bg-slate-50 border border-slate-200 px-4 py-3 flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="text-sm text-slate-700">Chance to hit {formatEur(goal.targetEur)}</p>
+              <p className="text-sm text-slate-700">
+                Chance to hit {formatEur(goal.targetEur)} this quarter
+                {goal.winLossPct != null ? ` · Win rate ${goal.winLossPct}%` : ""}
+              </p>
               <p className={`text-2xl font-bold ${chance.color}`}>
                 ~{goal.winChancePct}% · {chance.label}
               </p>

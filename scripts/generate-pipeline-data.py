@@ -10,9 +10,10 @@ import pandas as pd
 
 
 MONTHLY_GOAL_DEFAULT_EUR = 2000
-DEFAULT_EXPORT = "novoexport.xlsx"
+DEFAULT_EXPORT = "novoexport1.xlsx"
 CATEGORY_WEIGHTS = {
     "Closed Won": 1.0,
+    "Closed Lost": 0.0,
     "Upside": 0.55,
     "Pipeline": 0.25,
     "Not Forecasted": 0.08,
@@ -27,6 +28,7 @@ OPTIONAL_DATE_COLUMNS = {
     "Demo date": "demoDate",
     "Date entered current stage": "stageEnteredDate",
     "Closed Date": "closeDate",
+    "Closed lost stage date": "closeLostStageDate",
 }
 
 OPTIONAL_SCALAR_COLUMNS = {
@@ -47,15 +49,58 @@ def cat_key(c: object) -> str:
     if pd.isna(c):
         return "Other"
     s = str(c).strip()
-    if "Upside" in s:
-        return "Upside"
-    if "Pipeline" in s:
-        return "Pipeline"
-    if "Closed" in s or "won" in s.lower():
+    sl = s.lower()
+    if "closed lost" in sl:
+        return "Closed Lost"
+    if ("closed" in sl and "won" in sl) or sl in ("closed won", "closed won"):
         return "Closed Won"
-    if "not forecasted" in s.lower():
+    if "upside" in sl:
+        return "Upside"
+    if "pipeline" in sl and "closed" not in sl:
+        return "Pipeline"
+    if "not forecasted" in sl:
         return "Not Forecasted"
     return "Other"
+
+
+def quarter_key_from_ts(ts: object) -> str:
+    if pd.isna(ts):
+        return ""
+    t = pd.Timestamp(ts)
+    return f"{t.year}-Q{(t.month - 1) // 3 + 1}"
+
+
+def month_key_to_quarter(month_key: object) -> str:
+    if pd.isna(month_key) or not str(month_key).strip():
+        return ""
+    parts = str(month_key).split("-")
+    if len(parts) < 2:
+        return ""
+    y, m = int(parts[0]), int(parts[1])
+    return f"{y}-Q{(m - 1) // 3 + 1}"
+
+
+def quarter_label(qk: str) -> str:
+    if not qk or "-Q" not in qk:
+        return qk
+    y, qn = qk.split("-Q")
+    return f"Q{qn} {y}"
+
+
+def quarter_calendar_months(qk: str) -> list[str]:
+    if not qk or "-Q" not in qk:
+        return []
+    y = int(qk.split("-Q")[0])
+    qn = int(qk.split("-Q")[1])
+    start = (qn - 1) * 3 + 1
+    return [f"{y}-{start + i:02d}" for i in range(3)]
+
+
+def days_left_in_quarter(today: pd.Timestamp) -> int:
+    qn = (today.month - 1) // 3 + 1
+    end_month = qn * 3
+    quarter_end = pd.Timestamp(year=today.year, month=end_month, day=1) + pd.offsets.MonthEnd(0)
+    return max(0, int((quarter_end.normalize() - today).days))
 
 
 def load_dashboard_config(root: Path) -> dict:
@@ -169,7 +214,7 @@ def deal_is_stale(
     next_activity_date: object = None,
     today: Optional[pd.Timestamp] = None,
 ) -> bool:
-    if cat == "Closed Won":
+    if cat in ("Closed Won", "Closed Lost"):
         return False
     if today is not None and has_scheduled_activity(next_activity_date, today):
         return False
@@ -197,7 +242,7 @@ def stale_reason(
     deal_score: Optional[float] = None,
     valid_touchpoints: Optional[int] = None,
 ) -> str:
-    if cat == "Closed Won":
+    if cat in ("Closed Won", "Closed Lost"):
         return ""
     if today is not None and has_scheduled_activity(next_activity_date, today):
         return ""
@@ -287,12 +332,20 @@ def main() -> None:
 
     dash_cfg = load_dashboard_config(root)
     monthly_goal_eur = monthly_goal_from_config(dash_cfg)
+    quarterly_goal_eur = monthly_goal_eur * 3
 
     df = pd.read_excel(xlsx)
     df.columns = [str(c).strip() for c in df.columns]
     column_report = export_column_report(df, old_cols)
 
-    for col in ["Close Date", "Create Date", "Last Activity Date", "Evaluation stage date", "Last Valid Touchpoint"]:
+    for col in [
+        "Close Date",
+        "Create Date",
+        "Last Activity Date",
+        "Evaluation stage date",
+        "Last Valid Touchpoint",
+        "Closed lost stage date",
+    ]:
         if col_present(df, col):
             df[col] = pd.to_datetime(df[col], errors="coerce")
     df = parse_optional_columns(df)
@@ -308,9 +361,18 @@ def main() -> None:
     df["category_group"] = df["Forecast category"].apply(cat_key)
     df["close_month"] = df["Close Date"].dt.strftime("%Y-%m")
     df["create_month"] = df["Create Date"].dt.strftime("%Y-%m")
+    df["close_quarter"] = df["Close Date"].apply(quarter_key_from_ts)
+    if col_present(df, "Closed lost stage date"):
+        df["lost_quarter"] = df["Closed lost stage date"].apply(quarter_key_from_ts)
+        lost_no_date = (df["category_group"] == "Closed Lost") & (df["lost_quarter"] == "")
+        df.loc[lost_no_date, "lost_quarter"] = df.loc[lost_no_date, "close_quarter"]
+    else:
+        df["lost_quarter"] = ""
 
     today = pd.Timestamp.now().normalize()
     month_key = today.strftime("%Y-%m")
+    quarter_key = quarter_key_from_ts(today)
+    quarter_lbl = quarter_label(quarter_key)
 
     def row_age_days(r) -> int:
         if pd.isna(r["Create Date"]):
@@ -337,7 +399,7 @@ def main() -> None:
         return None
 
     months = sorted(df["close_month"].dropna().unique())
-    cats = ["Upside", "Pipeline", "Closed Won", "Not Forecasted"]
+    cats = ["Upside", "Pipeline", "Closed Won", "Closed Lost", "Not Forecasted"]
     chart = []
     for cat in cats:
         points = []
@@ -360,6 +422,11 @@ def main() -> None:
             df, "Number of Valid Touchpoints"
         ) else None
         next_act = row_next_activity(r)
+        close_lost_dt = (
+            r.get("Closed lost stage date")
+            if col_present(df, "Closed lost stage date")
+            else None
+        )
 
         deal: dict[str, Any] = {
             "id": str(r["Record ID"]),
@@ -380,6 +447,9 @@ def main() -> None:
             "lastActivity": iso_or_none(r["Last Activity Date"]),
             "nextStep": safe_str(r["Next step"], 280),
             "closeMonthKey": str(r["close_month"]) if pd.notna(r["close_month"]) else "",
+            "closeQuarterKey": str(r["close_quarter"]) if pd.notna(r.get("close_quarter")) else "",
+            "closeLostStageDate": iso_or_none(close_lost_dt),
+            "lostQuarterKey": str(r["lost_quarter"]) if pd.notna(r.get("lost_quarter")) else "",
             "dealScore": deal_score,
             "evaluationStageDate": iso_or_none(r["Evaluation stage date"])
             if col_present(df, "Evaluation stage date")
@@ -399,7 +469,7 @@ def main() -> None:
                 today=today,
             ),
             "engagementRisk": (
-                cat != "Closed Won"
+                cat not in ("Closed Won", "Closed Lost")
                 and (
                     (touchpoints is not None and touchpoints <= 1)
                     or (dsvt is not None and dsvt >= 14)
@@ -413,6 +483,7 @@ def main() -> None:
     upside = df[df["category_group"] == "Upside"]
     pipeline = df[df["category_group"] == "Pipeline"]
     closed = df[df["category_group"] == "Closed Won"]
+    closed_lost = df[df["category_group"] == "Closed Lost"]
     not_fc = df[df["category_group"] == "Not Forecasted"]
 
     fd_mask = df["Deal Stage"].map(is_first_demo_stage)
@@ -437,6 +508,17 @@ def main() -> None:
             delta = pd.Timestamp(r["Close Date"]).normalize() - pd.Timestamp(r["Create Date"]).normalize()
             cycle_days.append(max(0, int(delta.days)))
     avg_cycle_days = round(float(sum(cycle_days)) / len(cycle_days), 1) if cycle_days else None
+
+    lost_q_mask = (df["category_group"] == "Closed Lost") & (df["lost_quarter"] == quarter_key)
+    lost_quarter_count = int(lost_q_mask.sum())
+    lost_quarter_eur = float(df.loc[lost_q_mask, "Amount"].sum())
+    won_q_mask = (df["category_group"] == "Closed Won") & (df["close_quarter"] == quarter_key)
+    won_quarter_count = int(won_q_mask.sum())
+    closed_outcomes = won_quarter_count + lost_quarter_count
+    win_loss_pct = (
+        round(100.0 * won_quarter_count / closed_outcomes, 1) if closed_outcomes > 0 else None
+    )
+
     conversion_snapshot = {
         "ratePct": conversion_rate_pct,
         "wonCount": won_count,
@@ -444,78 +526,129 @@ def main() -> None:
         "firstDemoExcludedDealCount": int(fd_mask.sum()),
         "avgSalesCycleDays": avg_cycle_days,
         "cycleSampleCount": int(len(cycle_days)),
-        "formulaEn": "won ÷ (Won + Upside + Pipeline) excluding Deal Stage containing First Demo; "
-        "cycle = avg days creation→close among those wins.",
+        "winLossPct": win_loss_pct,
+        "quarterWonCount": won_quarter_count,
+        "quarterLostCount": lost_quarter_count,
+        "quarterLostEur": round(lost_quarter_eur, 2),
+        "formulaEn": "Open funnel: won ÷ (Won + Upside + Pipeline) excluding First Demo. "
+        "Quarter win rate: closed won ÷ (closed won + closed lost) using close lost stage date for losses.",
     }
 
-    month_deals = df[df["close_month"] == month_key].copy()
+    quarter_deals = df[df["close_quarter"] == quarter_key].copy()
 
     secured = float(
-        month_deals.loc[month_deals["category_group"] == "Closed Won", "Amount"].sum()
+        quarter_deals.loc[quarter_deals["category_group"] == "Closed Won", "Amount"].sum()
     )
-    weighted_month = float(
+    weighted_quarter = float(
         sum(
             row["Amount"] * CATEGORY_WEIGHTS.get(row["category_group"], 0.1)
-            for _, row in month_deals.iterrows()
+            for _, row in quarter_deals.iterrows()
         )
     )
-    gap_secured = max(0.0, monthly_goal_eur - secured)
-    gap_weighted = max(0.0, monthly_goal_eur - weighted_month)
-    progress_pct = min(100.0, round((weighted_month / monthly_goal_eur) * 100, 1))
-    secured_pct = min(100.0, round((secured / monthly_goal_eur) * 100, 1))
+    gap_secured = max(0.0, quarterly_goal_eur - secured)
+    gap_weighted = max(0.0, quarterly_goal_eur - weighted_quarter)
+    progress_pct = min(100.0, round((weighted_quarter / quarterly_goal_eur) * 100, 1))
+    secured_pct = min(100.0, round((secured / quarterly_goal_eur) * 100, 1))
 
-    raw_chance = (weighted_month / monthly_goal_eur) * 72 + (secured / monthly_goal_eur) * 28
+    raw_chance = (weighted_quarter / quarterly_goal_eur) * 72 + (secured / quarterly_goal_eur) * 28
     win_chance = int(min(92, max(8, round(raw_chance))))
 
-    days_in_month = (today + pd.offsets.MonthEnd(0)).day
-    day_of_month = today.day
-    run_rate = (secured / day_of_month) * days_in_month if day_of_month > 0 else 0
-    projected_month = round(min(run_rate + weighted_month - secured, monthly_goal_eur * 2), 0)
+    days_in_quarter = days_left_in_quarter(today) + today.day  # approx elapsed via quarter end - days_left
+    q_months = quarter_calendar_months(quarter_key)
+    q_start = pd.Timestamp(f"{q_months[0]}-01")
+    days_elapsed = max(1, int((today - q_start).days) + 1)
+    run_rate = (secured / days_elapsed) * days_in_quarter if days_elapsed > 0 else 0
+    projected_quarter = round(
+        min(run_rate + weighted_quarter - secured, quarterly_goal_eur * 2), 0
+    )
 
-    month_start = pd.Timestamp(f"{month_key}-01")
     trend_points = []
     cumulative_secured = 0.0
     cumulative_weighted = 0.0
-    for week in range(1, 6):
-        week_end = month_start + pd.Timedelta(days=week * 7)
-        week_mask = (month_deals["Close Date"] >= month_start) & (
-            month_deals["Close Date"] < week_end
+    for m in q_months:
+        month_start = pd.Timestamp(f"{m}-01")
+        month_end = month_start + pd.offsets.MonthEnd(0) + pd.Timedelta(days=1)
+        month_mask = (quarter_deals["Close Date"] >= month_start) & (
+            quarter_deals["Close Date"] < month_end
         )
-        week_df = month_deals.loc[week_mask]
+        month_df = quarter_deals.loc[month_mask]
         w_secured = float(
-            week_df.loc[week_df["category_group"] == "Closed Won", "Amount"].sum()
+            month_df.loc[month_df["category_group"] == "Closed Won", "Amount"].sum()
         )
         w_weighted = float(
             sum(
                 row["Amount"] * CATEGORY_WEIGHTS.get(row["category_group"], 0.1)
-                for _, row in week_df.iterrows()
+                for _, row in month_df.iterrows()
             )
         )
         cumulative_secured += w_secured
         cumulative_weighted += w_weighted
+        m_label = pd.Timestamp(f"{m}-01").strftime("%b")
         trend_points.append(
             {
-                "week": f"W{week}",
+                "week": m_label,
                 "secured": round(cumulative_secured, 2),
                 "weighted": round(cumulative_weighted, 2),
-                "goal": monthly_goal_eur,
+                "goal": quarterly_goal_eur,
             }
         )
 
-    if len(trend_points) >= 2 and day_of_month > 0:
-        last_w = trend_points[min(len(trend_points) - 1, max(1, (day_of_month - 1) // 7))]
-        slope = last_w["weighted"] / max(day_of_month, 1)
+    if len(trend_points) >= 1 and days_elapsed > 0:
+        slope = cumulative_weighted / days_elapsed
         for i, pt in enumerate(trend_points):
-            projected = round(slope * min(days_in_month, (i + 1) * 7), 2)
-            pt["trend"] = projected
+            days_at_point = min(days_in_quarter, (i + 1) * 30)
+            pt["trend"] = round(slope * days_at_point, 2)
     else:
         for pt in trend_points:
             pt["trend"] = pt["weighted"]
 
+    quarter_outlook: list[dict[str, Any]] = []
+    outlook_quarters = sorted(
+        {q for q in df["close_quarter"].dropna().unique() if q and q >= quarter_key}
+        | {q for q in df["lost_quarter"].dropna().unique() if q and q >= quarter_key}
+    )[:4]
+    if quarter_key not in outlook_quarters:
+        outlook_quarters = [quarter_key] + outlook_quarters
+    outlook_quarters = sorted(set(outlook_quarters))[:4]
+
+    for qk in outlook_quarters:
+        q_close = df[df["close_quarter"] == qk]
+        q_lost = df[(df["category_group"] == "Closed Lost") & (df["lost_quarter"] == qk)]
+        q_secured = float(
+            q_close.loc[q_close["category_group"] == "Closed Won", "Amount"].sum()
+        )
+        q_weighted = float(
+            sum(
+                row["Amount"] * CATEGORY_WEIGHTS.get(row["category_group"], 0.1)
+                for _, row in q_close.iterrows()
+            )
+        )
+        q_lost_eur = float(q_lost["Amount"].sum())
+        open_weighted = float(
+            sum(
+                row["Amount"] * CATEGORY_WEIGHTS.get(row["category_group"], 0.1)
+                for _, row in q_close.iterrows()
+                if row["category_group"] not in ("Closed Won", "Closed Lost")
+            )
+        )
+        quarter_outlook.append(
+            {
+                "quarter": qk,
+                "label": quarter_label(qk),
+                "isCurrent": qk == quarter_key,
+                "targetEur": quarterly_goal_eur,
+                "securedEur": round(q_secured, 2),
+                "weightedEur": round(q_weighted, 2),
+                "lostEur": round(q_lost_eur, 2),
+                "openWeightedEur": round(open_weighted, 2),
+                "dealCount": int(len(q_close)),
+            }
+        )
+
     created_this_month = df[df["create_month"] == month_key]
     created_this_month_eur = float(created_this_month["Amount"].sum())
 
-    open_mask = df["category_group"] != "Closed Won"
+    open_mask = ~df["category_group"].isin(["Closed Won", "Closed Lost"])
     open_df = df.loc[open_mask]
     if len(open_df) > 0:
         ages = [
@@ -527,7 +660,7 @@ def main() -> None:
     else:
         avg_age_days = 0.0
 
-    open_deals = [d for d in deals if d["category"] != "Closed Won"]
+    open_deals = [d for d in deals if d["category"] not in ("Closed Won", "Closed Lost")]
     scores = [d["dealScore"] for d in open_deals if d.get("dealScore") is not None]
     avg_deal_score = round(sum(scores) / len(scores), 1) if scores else None
     low_score_count = sum(1 for d in open_deals if (d.get("dealScore") or 100) < 40)
@@ -592,8 +725,8 @@ def main() -> None:
     stale_list = sorted(stale_list, key=lambda x: (-(x["ageDays"] or 0), -x["amount"]))[:5]
 
     priority_deals = []
-    for _, r in month_deals.sort_values("Amount", ascending=False).iterrows():
-        if r["category_group"] == "Closed Won":
+    for _, r in quarter_deals.sort_values("Amount", ascending=False).iterrows():
+        if r["category_group"] in ("Closed Won", "Closed Lost"):
             continue
         d_match = next((d for d in deals if d["id"] == str(r["Record ID"])), None)
         priority_deals.append(
@@ -651,11 +784,18 @@ def main() -> None:
 
     top_priority = priority_deals[0] if priority_deals else None
     bullets = [
-        f"Monthly goal €{monthly_goal_eur:,.0f}: {progress_pct:.0f}% by weighted forecast — "
-        f"€{secured:,.0f} secured, €{weighted_month:,.0f} weighted ({month_key}).",
-        f"Estimated chance to reach goal this month: ~{win_chance}%. "
+        f"{quarter_lbl} goal €{quarterly_goal_eur:,.0f} (€{monthly_goal_eur:,.0f}/mo): "
+        f"{progress_pct:.0f}% by weighted forecast — €{secured:,.0f} secured, "
+        f"€{weighted_quarter:,.0f} weighted.",
+        f"Estimated chance to reach {quarter_lbl} goal: ~{win_chance}%. "
         f"Gap to close (secured): €{gap_secured:,.0f} · Gap with forecast: €{gap_weighted:,.0f}.",
     ]
+    if lost_quarter_count > 0:
+        wl = f"{win_loss_pct:.0f}%" if win_loss_pct is not None else "—"
+        bullets.append(
+            f"Closed lost this quarter: €{lost_quarter_eur:,.0f} across {lost_quarter_count} deal(s) "
+            f"(date from Closed lost stage date). Win rate on closed outcomes: {wl}."
+        )
     if top_priority:
         score_bit = ""
         if top_priority.get("dealScore") is not None:
@@ -716,6 +856,8 @@ def main() -> None:
             "pipelineCount": int(len(pipeline)),
             "closedWonValue": round(float(closed["Amount"].sum()), 2),
             "closedWonCount": int(len(closed)),
+            "closedLostValue": round(float(closed_lost["Amount"].sum()), 2),
+            "closedLostCount": int(len(closed_lost)),
             "notForecastedValue": round(float(not_fc["Amount"].sum()), 2),
             "notForecastedCount": int(len(not_fc)),
             "avgDealSize": round(float(df["Amount"].mean()), 2),
@@ -726,8 +868,10 @@ def main() -> None:
             "scheduledFollowupCount": scheduled_followups,
         },
         "pipelineHealth": {
-            "month": month_key,
-            "monthLabel": today.strftime("%B %Y"),
+            "month": quarter_key,
+            "monthLabel": quarter_lbl,
+            "calendarMonth": month_key,
+            "calendarMonthLabel": today.strftime("%B %Y"),
             "createdThisMonthEur": round(created_this_month_eur, 2),
             "createdThisMonthCount": int(len(created_this_month)),
             "avgDealAgeDays": avg_age_days,
@@ -744,24 +888,34 @@ def main() -> None:
         "chartMonths": months,
         "conversionSnapshot": conversion_snapshot,
         "goal": {
-            "targetEur": monthly_goal_eur,
-            "month": month_key,
-            "monthLabel": today.strftime("%B %Y"),
+            "targetEur": quarterly_goal_eur,
+            "monthlyTargetEur": monthly_goal_eur,
+            "month": quarter_key,
+            "monthLabel": quarter_lbl,
+            "quarter": quarter_key,
+            "quarterLabel": quarter_lbl,
             "securedEur": round(secured, 2),
-            "weightedEur": round(weighted_month, 2),
+            "lostEur": round(lost_quarter_eur, 2),
+            "weightedEur": round(weighted_quarter, 2),
             "gapEur": round(gap_secured, 2),
             "gapWeightedEur": round(gap_weighted, 2),
             "progressPct": progress_pct,
             "securedPct": secured_pct,
             "winChancePct": win_chance,
-            "projectedEur": projected_month,
-            "daysLeft": int(days_in_month - day_of_month),
+            "winLossPct": win_loss_pct,
+            "projectedEur": projected_quarter,
+            "daysLeft": days_left_in_quarter(today),
             "trend": trend_points,
             "priorityDeals": priority_deals[:5],
         },
+        "quarterOutlook": quarter_outlook,
         "deals": sorted(
             deals,
-            key=lambda d: (-(d.get("closeMonthKey") == month_key), -d["weightedAmount"]),
+            key=lambda d: (
+                -(d.get("closeQuarterKey") == quarter_key),
+                -(d.get("lostQuarterKey") == quarter_key),
+                -d["weightedAmount"],
+            ),
         ),
         "columnReport": column_report,
     }

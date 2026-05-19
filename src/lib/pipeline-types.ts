@@ -41,6 +41,9 @@ export interface PipelineDeal extends DealEngagementExtras {
   lastActivity: string | null;
   nextStep: string;
   closeMonthKey: string;
+  closeQuarterKey?: string;
+  closeLostStageDate?: string | null;
+  lostQuarterKey?: string;
   dealScore?: number | null;
   evaluationStageDate?: string | null;
   daysInEvaluation?: number | null;
@@ -59,6 +62,8 @@ export interface PipelineSummary {
   pipelineCount: number;
   closedWonValue: number;
   closedWonCount: number;
+  closedLostValue?: number;
+  closedLostCount?: number;
   notForecastedValue: number;
   notForecastedCount: number;
   avgDealSize: number;
@@ -86,6 +91,8 @@ export interface StaleDeal {
 export interface PipelineHealth {
   month: string;
   monthLabel: string;
+  calendarMonth?: string;
+  calendarMonthLabel?: string;
   createdThisMonthEur: number;
   createdThisMonthCount: number;
   avgDealAgeDays: number;
@@ -122,21 +129,38 @@ export interface PriorityDeal {
 
 export interface MonthlyGoal {
   targetEur: number;
+  monthlyTargetEur?: number;
   month: string;
   monthLabel: string;
+  quarter?: string;
+  quarterLabel?: string;
   securedEur: number;
+  lostEur?: number;
   weightedEur: number;
-  /** Target minus secured (Closed Won this month) — primary 1:1 gap. */
+  /** Target minus secured (Closed Won this quarter) — primary 1:1 gap. */
   gapEur: number;
   /** Target minus weighted forecast (open + closed with category weights). */
   gapWeightedEur: number;
   progressPct: number;
   securedPct: number;
   winChancePct: number;
+  winLossPct?: number | null;
   projectedEur: number;
   daysLeft: number;
   trend: GoalTrendPoint[];
   priorityDeals: PriorityDeal[];
+}
+
+export interface QuarterOutlookRow {
+  quarter: string;
+  label: string;
+  isCurrent: boolean;
+  targetEur: number;
+  securedEur: number;
+  weightedEur: number;
+  lostEur: number;
+  openWeightedEur: number;
+  dealCount: number;
 }
 
 export interface PipelineMeta {
@@ -168,6 +192,10 @@ export interface ConversionSnapshot {
   firstDemoExcludedDealCount: number;
   avgSalesCycleDays: number | null;
   cycleSampleCount: number;
+  winLossPct?: number | null;
+  quarterWonCount?: number;
+  quarterLostCount?: number;
+  quarterLostEur?: number;
   formulaEn: string;
 }
 
@@ -179,6 +207,7 @@ export interface PipelineData {
   chartSeries: ChartSeries[];
   chartMonths: string[];
   goal: MonthlyGoal;
+  quarterOutlook?: QuarterOutlookRow[];
   deals: PipelineDeal[];
   columnReport?: ColumnReport;
   conversionSnapshot?: ConversionSnapshot;

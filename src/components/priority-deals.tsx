@@ -7,6 +7,7 @@ import { formatDisplayDate, formatEur, hubspotDealUrl } from "@/lib/utils";
 const CAT_COLOR: Record<string, string> = {
   Upside: "bg-blue-50 text-blue-800 border-blue-100",
   Pipeline: "bg-violet-50 text-violet-800 border-violet-100",
+  "Closed Lost": "bg-rose-50 text-rose-800 border-rose-100",
   "Not Forecasted": "bg-slate-100 text-slate-700 border-slate-200",
 };
 
@@ -23,7 +24,7 @@ export default function PriorityDeals({ goal, meta }: PriorityDealsProps) {
         <h3 className="text-lg font-semibold text-slate-900">Focus this week</h3>
       </div>
       <p className="text-sm text-slate-500 mb-4">
-        Open deals closing in {goal.monthLabel} — highest impact on the monthly goal.
+        Open deals closing in {goal.quarterLabel ?? goal.monthLabel} — highest impact on the quarterly goal.
       </p>
       <ul className="space-y-3 flex-1">
         {goal.priorityDeals.map((deal) => {

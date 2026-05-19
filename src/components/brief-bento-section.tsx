@@ -51,9 +51,15 @@ export default function BriefBentoSection({
       valueClass: goal.gapWeightedEur <= 0 ? "text-emerald-700" : "text-slate-900",
     },
     {
+      title: "Closed lost",
+      value: formatEur(goal.lostEur ?? 0),
+      subtitle: goal.quarterLabel ?? "This quarter",
+      valueClass: (goal.lostEur ?? 0) > 0 ? "text-rose-700" : "text-slate-900",
+    },
+    {
       title: "Days left",
       value: `${goal.daysLeft}`,
-      subtitle: "This calendar month",
+      subtitle: "In quarter",
     },
     {
       title: "Avg. deal age",
@@ -131,7 +137,7 @@ export default function BriefBentoSection({
       <div className="p-5">
         <div className="flex items-center gap-2 text-xs text-slate-500 mb-2">
           <Activity className="w-3.5 h-3.5 shrink-0" aria-hidden />
-          <span>Monthly momentum</span>
+          <span>Quarter momentum</span>
           <span className="text-slate-400">·</span>
           <span className="text-slate-500">Secured vs weighted · dashed = trend</span>
         </div>

@@ -82,24 +82,25 @@ export function buildCountryOpenPipelineChart(deals: PipelineDeal[], topN = 6): 
   };
 }
 
-/** This-month close pipeline only — by category. */
-export function buildCurrentMonthCloseChart(deals: PipelineDeal[], monthKey: string): ChartPayload {
+/** Current-quarter close pipeline — by category (close date in quarter). */
+export function buildCurrentQuarterCloseChart(deals: PipelineDeal[], quarterKey: string): ChartPayload {
   const catMap: { key: string; label: string }[] = [
     { key: "Upside", label: "Upside" },
     { key: "Pipeline", label: "Pipeline" },
     { key: "Closed Won", label: "Closed Won" },
+    { key: "Closed Lost", label: "Closed Lost" },
     { key: "Not Forecasted", label: "Not forecasted" },
   ];
-  const row: Record<string, string | number> = { Period: monthLabel(monthKey) };
+  const row: Record<string, string | number> = { Period: quarterKey.replace("-Q", " Q") };
   for (const { key, label } of catMap) {
     const sum = deals
-      .filter((d) => d.closeMonthKey === monthKey && d.category === key)
+      .filter((d) => d.closeQuarterKey === quarterKey && d.category === key)
       .reduce((acc, d) => acc + d.amount, 0);
     row[label] = Math.round(sum);
   }
   return {
     index: "Period",
-    categories: ["Upside", "Pipeline", "Closed Won", "Not forecasted"],
+    categories: catMap.map((c) => c.label),
     data: [row],
   };
 }

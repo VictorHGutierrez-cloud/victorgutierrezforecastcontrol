@@ -10,6 +10,7 @@ import { MonthlyQuotaProvider, useMonthlyQuota } from "@/components/monthly-quot
 import PipelineHealthPanel from "@/components/pipeline-health";
 import PipelineReportsSection from "@/components/pipeline-reports-section";
 import PriorityDeals from "@/components/priority-deals";
+import QuarterOutlookSection from "@/components/quarter-outlook-section";
 import type { PipelineData } from "@/lib/pipeline-types";
 
 function DashboardBody({ pipelineData }: { pipelineData: PipelineData }) {
@@ -37,15 +38,20 @@ function DashboardBody({ pipelineData }: { pipelineData: PipelineData }) {
         ) : null}
 
         <section className="space-y-3">
-          <h2 className="section-heading text-slate-600">Monthly goal &amp; forecast</h2>
+          <h2 className="section-heading text-slate-600">Quarterly goal &amp; forecast</h2>
           <p className="text-sm text-slate-500 mb-4">
-            Close-date view for this calendar month; weights reflect HubSpot forecast category.
+            Close-date view for the full quarter; losses use Closed lost stage date. Weights reflect HubSpot
+            forecast category.
           </p>
           <MonthlyQuotaControl />
           <div className="mt-6">
             <GoalTracker goal={effectiveGoal} />
           </div>
         </section>
+
+        {pipelineData.quarterOutlook?.length ? (
+          <QuarterOutlookSection rows={pipelineData.quarterOutlook} />
+        ) : null}
 
         <section className="space-y-3">
           <PipelineReportsSection pipelineData={pipelineData} goal={effectiveGoal} />
@@ -54,7 +60,7 @@ function DashboardBody({ pipelineData }: { pipelineData: PipelineData }) {
         <section className="space-y-3">
           <h2 className="section-heading text-slate-600">Focus deals</h2>
           <p className="text-sm text-slate-500 mb-4">
-            Highest-impact open deals for the monthly target — drill into HubSpot from each row.
+            Highest-impact open deals for the quarterly target — drill into HubSpot from each row.
           </p>
           <PriorityDeals goal={effectiveGoal} meta={pipelineData.meta} />
         </section>

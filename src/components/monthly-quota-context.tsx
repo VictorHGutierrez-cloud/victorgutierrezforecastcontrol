@@ -14,6 +14,7 @@ import {
   deriveMonthlyGoalFromTarget,
   mergeExecutiveBulletsWhenQuotaAdjusted,
 } from "@/lib/derive-monthly-goal";
+import { getPublicPath } from "@/lib/public-path";
 
 export const MONTHLY_QUOTA_STORAGE_KEY = "forecast-row-monthly-quota";
 
@@ -82,7 +83,9 @@ export function MonthlyQuotaProvider({ children, pipelineData }: ProviderProps) 
     (async () => {
       let configQuota: number | undefined;
       try {
-        const res = await fetch("/data/dashboard-config.json", { cache: "no-store" });
+        const res = await fetch(getPublicPath("/data/dashboard-config.json"), {
+          cache: "no-store",
+        });
         const j = (await res.json()) as { monthlyQuotaEur?: unknown };
         const mq = j.monthlyQuotaEur;
         const n =

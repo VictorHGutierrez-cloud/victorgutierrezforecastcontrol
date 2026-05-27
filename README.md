@@ -6,11 +6,22 @@ Landing page for your **weekly manager brief**: monthly quota in EUR, executive 
 
 ## Recommended workflow (refresh before 1:1)
 
+### Easiest: upload on the live site (no Cursor)
+
 1. In HubSpot, export the **Forecast Control** view as `.xlsx`.
-2. Save it in the repo root as **`novoexport.xlsx`** (replaces the previous file), or pass another path: `npm run generate-data -- /path/to/export.xlsx`.
-3. Run `npm run generate-data` (regenerates `public/data/pipeline.json`, including manager-facing text).
-4. `git add .`, commit, `git push` to `main` — GitHub Actions republishes in ~3–5 minutes.
-5. Send the Pages link to your manager; during the week, forecast changes **only in HubSpot**.
+2. Open your dashboard URL (local `npm run dev` or GitHub Pages).
+3. Use the green **“Carregar Excel do HubSpot”** box at the top — pick the file.
+4. The page updates immediately in **your browser** (data is stored in local storage until you clear it).
+
+**Manager on the public link?** Upload is per-browser. To refresh the shared site: click **Descarregar JSON**, replace `public/data/pipeline.json` in the repo, then `git push` (or ask for help once).
+
+### Optional: update via repo (same as before)
+
+1. Save the export as **`novoexport1.xlsx`** in the repo root (or pass a path: `npm run generate-data -- /path/to/export.xlsx`).
+2. Run `npm run generate-data` (regenerates `public/data/pipeline.json`).
+3. `git add .`, commit, `git push` to `main` — GitHub Actions republishes in ~3–5 minutes.
+
+During the week, forecast changes **only in HubSpot**; this page is your snapshot for 1:1s.
 
 ## Configure HubSpot on the page
 
